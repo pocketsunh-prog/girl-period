@@ -14,7 +14,7 @@ import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Switch;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,8 +34,8 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String KEY_NOTIFICATIONS = "notifications_enabled";
     private static final String KEY_FINGERPRINT = "fingerprint_enabled";
 
-    private Switch notificationSwitch;
-    private Switch fingerprintSwitch;
+    private SwitchMaterial notificationSwitch;
+    private SwitchMaterial fingerprintSwitch;
     private ImageButton btnBack;
     private Button btnLogout;
 
