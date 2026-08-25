@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Face background (rounded square) -->
+    <path
+        android:fillColor="#FFFFC1CC"
+        android:pathData="M24,12 L84,12 Q96,12 96,24 L96,84 Q96,96 84,96 L24,96 Q12,96 12,84 L12,24 Q12,12 24,12z" />
+    <!-- Left eye -->
+    <path
+        android:fillColor="#FF5D4037"
+        android:pathData="M38,42 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <!-- Right eye -->
+    <path
+        android:fillColor="#FF5D4037"
+        android:pathData="M70,42 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <!-- Left eye shine -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36,40 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <!-- Right eye shine -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M68,40 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <!-- Mouth (small smile) -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M48,60 Q54,68 60,60"
+        android:strokeWidth="3"
+        android:strokeColor="#FF5D4037"
+        android:strokeLineCap="round" />
+    <!-- Left blush -->
+    <path
+        android:fillColor="#80FF8FA3"
+        android:pathData="M28,56 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+    <!-- Right blush -->
+    <path
+        android:fillColor="#80FF8FA3"
+        android:pathData="M80,56 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+</vector>

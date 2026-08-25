@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GirlPeriod" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/ghibli_matcha_accent</item>
+        <item name="colorPrimaryVariant">@color/ghibli_matcha_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/ghibli_sakura_accent</item>
+        <item name="colorSecondaryVariant">@color/ghibli_sakura_primary</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/ghibli_matcha_bg</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:statusBarColor">@color/ghibli_matcha_primary</item>
+        <item name="android:navigationBarColor">@color/ghibli_matcha_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

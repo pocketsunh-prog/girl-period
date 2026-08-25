@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ghibli Theme Colors -->
+    <color name="ghibli_sakura_primary">#FFFFC1CC</color>
+    <color name="ghibli_sakura_accent">#FFFF8FA3</color>
+    <color name="ghibli_sakura_bg">#FFFFF5F7</color>
+    <color name="ghibli_matcha_primary">#FFB8D8B8</color>
+    <color name="ghibli_matcha_accent">#FF8FAB8F</color>
+    <color name="ghibli_matcha_bg">#FFF5FFF5</color>
+    <color name="ghibli_sky_primary">#FFB8E0FF</color>
+    <color name="ghibli_sky_accent">#FF8FC0FF</color>
+    <color name="ghibli_sky_bg">#FFF5FAFF</color>
+    <color name="ghibli_lavender_primary">#FFD8C0FF</color>
+    <color name="ghibli_lavender_accent">#FFB89FD8</color>
+    <color name="ghibli_lavender_bg">#FFF8F5FF</color>
+    <color name="ghibli_peach_primary">#FFFFD8B8</color>
+    <color name="ghibli_peach_accent">#FFFFB88F</color>
+    <color name="ghibli_peach_bg">#FFFFF8F5</color>
+    <!-- Common -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="gray_light">#FFF5F5F5</color>
+    <color name="gray_medium">#FFBBBBBB</color>
+    <color name="text_primary">#FF444444</color>
+    <color name="text_secondary">#FF888888</color>
+    <color name="period_pink">#FFFFD6E0</color>
+    <color name="predicted_pink">#FFFFE8F0</color>
+    <color name="today_green">#FFE8F5E9</color>
+    <color name="uv_orange">#FFFF8C00</color>
+    <color name="humidity_blue">#FF4FC3F7</color>
+    <color name="rainfall_blue">#FF2196F3</color>
+    <!-- Layout-referenced colors -->
+    <color name="card_background">#FFFFFFFF</color>
+    <color name="primary_pink">#FFFF8FA3</color>
+    <color name="text_hint">#FFAAAAAA</color>
+    <color name="divider">#FFE0E0E0</color>
+    <color name="error_red">#FFFF5252</color>
+    <color name="switch_track_color">#FFFFC1CC</color>
+</resources>

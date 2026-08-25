@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Water drop -->
+    <path
+        android:fillColor="#FF42A5F5"
+        android:pathData="M12,2.69l-5.66,5.66c-3.12,3.12 -3.12,8.19 0,11.31C7.9,21.22 9.95,22 12,22s4.1,-0.78 5.66,-2.34c3.12,-3.12 3.12,-8.19 0,-11.31L12,2.69z" />
+    <!-- Highlight -->
+    <path
+        android:fillColor="#FF90CAF9"
+        android:pathData="M12,6.5c-0.83,0 -1.5,0.67 -1.5,1.5 0,0.83 0.67,1.5 1.5,1.5s1.5,-0.67 1.5,-1.5c0,-0.83 -0.67,-1.5 -1.5,-1.5z" />
+</vector>

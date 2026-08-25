@@ -1,0 +1,6 @@
+/.gradle
+/app/build
+/manual-build
+/gradle
+gradle.properties
+app/proguard-rules.pro
