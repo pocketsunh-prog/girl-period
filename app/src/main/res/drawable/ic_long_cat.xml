@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <!-- Long cat body (stretched oval) -->
+    <path
+        android:fillColor="#FF388E3C"
+        android:pathData="M32,8 C24,8 18,14 18,22 L18,46 C18,52 22,56 28,56 L36,56 C42,56 46,52 46,46 L46,22 C46,14 40,8 32,8z" />
+    <!-- Cat head -->
+    <path
+        android:fillColor="#FF388E3C"
+        android:pathData="M32,6 C28,6 25,9 25,13 L25,20 C25,24 28,26 32,26 C36,26 39,24 39,20 L39,13 C39,9 36,6 32,6z" />
+    <!-- Left ear -->
+    <path
+        android:fillColor="#FF388E3C"
+        android:pathData="M24,8 L20,2 L28,6z" />
+    <!-- Right ear -->
+    <path
+        android:fillColor="#FF388E3C"
+        android:pathData="M40,8 L44,2 L36,6z" />
+    <!-- Left eye -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M28,14 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <!-- Right eye -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36,14 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <!-- Nose -->
+    <path
+        android:fillColor="#FFFFD6E0"
+        android:pathData="M32,18 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+    <!-- Tail (long curved) -->
+    <path
+        android:pathData="M46,40 Q54,34 52,26 Q50,20 46,22"
+        android:strokeWidth="3"
+        android:strokeColor="#FF388E3C"
+        android:fillColor="#00000000" />
+</vector>

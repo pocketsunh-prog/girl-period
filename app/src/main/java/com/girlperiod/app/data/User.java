@@ -7,6 +7,8 @@ public class User {
     private String password;
     private boolean fingerprintEnabled;
     private String createdAt;
+    private String dob;
+    private String profileImage;
 
     public User() {
     }
@@ -62,5 +64,21 @@ public class User {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

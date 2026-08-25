@@ -38,6 +38,19 @@ public final class GhibliTheme {
     public static final int DATE_PICKER_STYLE_BLUE = 3;
     public static final int DATE_PICKER_STYLE_PURPLE = 4;
 
+    // DatePickerDialog customization keys
+    private static final String KEY_DP_FONT = "dp_font";
+    private static final String KEY_DP_FONT_SIZE = "dp_font_size";
+    private static final String KEY_DP_FONT_COLOR = "dp_font_color";
+    private static final String KEY_DP_BORDER_COLOR = "dp_border_color";
+    private static final String KEY_DP_SELECTED_COLOR = "dp_selected_color";
+
+    private static final String DEFAULT_DP_FONT = "sans-serif";
+    private static final int DEFAULT_DP_FONT_SIZE = 16;
+    private static final int DEFAULT_DP_FONT_COLOR = Color.parseColor("#FF444444");
+    private static final int DEFAULT_DP_BORDER_COLOR = Color.parseColor("#FFFF8FA3");
+    private static final int DEFAULT_DP_SELECTED_COLOR = Color.parseColor("#FFFFD6E0");
+
     /* ------------------------------------------------------------------ */
     /*  Theme enum                                                        */
     /* ------------------------------------------------------------------ */
@@ -297,6 +310,60 @@ public final class GhibliTheme {
     public static void saveDatePickerStyle(Context context, int style) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().putInt(KEY_DATE_PICKER_STYLE, style).apply();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  DatePickerDialog customization                                      */
+    /* ------------------------------------------------------------------ */
+
+    public static String getDPFont(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_DP_FONT, DEFAULT_DP_FONT);
+    }
+
+    public static void saveDPFont(Context context, String font) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_DP_FONT, font).apply();
+    }
+
+    public static int getDPFontSize(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_DP_FONT_SIZE, DEFAULT_DP_FONT_SIZE);
+    }
+
+    public static void saveDPFontSize(Context context, int size) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_DP_FONT_SIZE, size).apply();
+    }
+
+    public static int getDPFontColor(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_DP_FONT_COLOR, DEFAULT_DP_FONT_COLOR);
+    }
+
+    public static void saveDPFontColor(Context context, int color) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_DP_FONT_COLOR, color).apply();
+    }
+
+    public static int getDPBorderColor(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_DP_BORDER_COLOR, DEFAULT_DP_BORDER_COLOR);
+    }
+
+    public static void saveDPBorderColor(Context context, int color) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_DP_BORDER_COLOR, color).apply();
+    }
+
+    public static int getDPSelectedColor(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_DP_SELECTED_COLOR, DEFAULT_DP_SELECTED_COLOR);
+    }
+
+    public static void saveDPSelectedColor(Context context, int color) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_DP_SELECTED_COLOR, color).apply();
     }
 
     private GhibliTheme() {

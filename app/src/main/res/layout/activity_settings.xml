@@ -483,6 +483,7 @@
 
             <!-- DatePickerDialog Style -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDatePickerStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -499,7 +500,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="DatePicker Style"
+                        android:text="Ghibli DatePicker Style"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -508,176 +509,123 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Choose date picker dialog style"
+                        android:text="Customize font, colors and border"
                         android:textColor="@color/text_secondary"
                         android:textSize="13sp" />
 
-                    <!-- Style Options Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <!-- Font Family -->
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
+                        android:text="Font Family"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-                        <!-- Default -->
-                        <FrameLayout
-                            android:id="@+id/flDatePickerDefault"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/bg_date_picker_border"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?attr/selectableItemBackgroundBorderless">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFontFamily"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:gravity="start|center_vertical"
+                        android:text="sans-serif"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        app:cornerRadius="12dp"
+                        app:icon="@drawable/ic_chevron_right"
+                        app:iconGravity="end"
+                        app:iconTint="@color/text_secondary"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="Default"
-                                android:textColor="@color/primary_pink"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
+                    <!-- Font Size -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Font Size"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-                            <ImageView
-                                android:id="@+id/ivCheckDatePickerDefault"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="3dp"
-                                android:src="@drawable/ic_check"
-                                app:tint="@color/primary_pink" />
-                        </FrameLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFontSize"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:gravity="start|center_vertical"
+                        android:text="16"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        app:cornerRadius="12dp"
+                        app:icon="@drawable/ic_chevron_right"
+                        app:iconGravity="end"
+                        app:iconTint="@color/text_secondary"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp" />
 
-                        <!-- Pink -->
-                        <FrameLayout
-                            android:id="@+id/flDatePickerPink"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/bg_date_picker_pink"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?attr/selectableItemBackgroundBorderless">
+                    <!-- Font Color -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Font Color"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="Pink"
-                                android:textColor="#FFE91E63"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
+                    <View
+                        android:id="@+id/vDPFontColor"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_color_swatch"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless" />
 
-                            <ImageView
-                                android:id="@+id/ivCheckDatePickerPink"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="3dp"
-                                android:src="@drawable/ic_check"
-                                android:visibility="gone"
-                                app:tint="#FFE91E63" />
-                        </FrameLayout>
+                    <!-- Border Color -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Border Color"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-                        <!-- Green -->
-                        <FrameLayout
-                            android:id="@+id/flDatePickerGreen"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/bg_date_picker_green"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?attr/selectableItemBackgroundBorderless">
+                    <View
+                        android:id="@+id/vDPBorderColor"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_color_swatch"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="Green"
-                                android:textColor="#FF388E3C"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
+                    <!-- Selected Day Color -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Selected Day Color"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-                            <ImageView
-                                android:id="@+id/ivCheckDatePickerGreen"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="3dp"
-                                android:src="@drawable/ic_check"
-                                android:visibility="gone"
-                                app:tint="#FF388E3C" />
-                        </FrameLayout>
-
-                        <!-- Blue -->
-                        <FrameLayout
-                            android:id="@+id/flDatePickerBlue"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/bg_date_picker_blue"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?attr/selectableItemBackgroundBorderless">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="Blue"
-                                android:textColor="#FF2196F3"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:id="@+id/ivCheckDatePickerBlue"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="3dp"
-                                android:src="@drawable/ic_check"
-                                android:visibility="gone"
-                                app:tint="#FF2196F3" />
-                        </FrameLayout>
-
-                        <!-- Purple -->
-                        <FrameLayout
-                            android:id="@+id/flDatePickerPurple"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_date_picker_purple"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?attr/selectableItemBackgroundBorderless">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="Purple"
-                                android:textColor="#FF9C27B0"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <ImageView
-                                android:id="@+id/ivCheckDatePickerPurple"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_gravity="top|end"
-                                android:layout_margin="3dp"
-                                android:src="@drawable/ic_check"
-                                android:visibility="gone"
-                                app:tint="#FF9C27B0" />
-                        </FrameLayout>
-
-                    </LinearLayout>
+                    <View
+                        android:id="@+id/vDPSelectedColor"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_color_swatch"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless" />
 
                 </LinearLayout>
 
@@ -786,13 +734,28 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Profile Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnProfile"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="32dp"
+                android:text="Profile"
+                android:textAllCaps="false"
+                android:textColor="@color/primary_pink"
+                android:textSize="16sp"
+                app:cornerRadius="26dp"
+                app:strokeColor="@color/primary_pink"
+                app:strokeWidth="1.5dp" />
+
             <!-- Logout Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="12dp"
                 android:text="Logout"
                 android:textAllCaps="false"
                 android:textColor="@color/error_red"

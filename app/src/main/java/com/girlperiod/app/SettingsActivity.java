@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -53,8 +54,13 @@ public class SettingsActivity extends AppCompatActivity {
     private FrameLayout flStyleDefault, flStyleCompact, flStyleRounded, flStyleMinimal;
     private ImageView ivCheckStyleDefault, ivCheckStyleCompact, ivCheckStyleRounded, ivCheckStyleMinimal;
 
-    private FrameLayout flDatePickerDefault, flDatePickerPink, flDatePickerGreen, flDatePickerBlue, flDatePickerPurple;
-    private ImageView ivCheckDatePickerDefault, ivCheckDatePickerPink, ivCheckDatePickerGreen, ivCheckDatePickerBlue, ivCheckDatePickerPurple;
+    // Ghibli DatePicker style controls
+    private com.google.android.material.button.MaterialButton btnFontFamily;
+    private com.google.android.material.button.MaterialButton btnFontSize;
+    private View vDPFontColor;
+    private View vDPBorderColor;
+    private View vDPSelectedColor;
+    private TextView btnProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,24 +108,24 @@ public class SettingsActivity extends AppCompatActivity {
         ivCheckStyleRounded = findViewById(R.id.ivCheckStyleRounded);
         ivCheckStyleMinimal = findViewById(R.id.ivCheckStyleMinimal);
 
-        flDatePickerDefault = findViewById(R.id.flDatePickerDefault);
-        flDatePickerPink = findViewById(R.id.flDatePickerPink);
-        flDatePickerGreen = findViewById(R.id.flDatePickerGreen);
-        flDatePickerBlue = findViewById(R.id.flDatePickerBlue);
-        flDatePickerPurple = findViewById(R.id.flDatePickerPurple);
-
-        ivCheckDatePickerDefault = findViewById(R.id.ivCheckDatePickerDefault);
-        ivCheckDatePickerPink = findViewById(R.id.ivCheckDatePickerPink);
-        ivCheckDatePickerGreen = findViewById(R.id.ivCheckDatePickerGreen);
-        ivCheckDatePickerBlue = findViewById(R.id.ivCheckDatePickerBlue);
-        ivCheckDatePickerPurple = findViewById(R.id.ivCheckDatePickerPurple);
+        // Ghibli DatePicker style controls
+        btnFontFamily = findViewById(R.id.btnFontFamily);
+        btnFontSize = findViewById(R.id.btnFontSize);
+        vDPFontColor = findViewById(R.id.vDPFontColor);
+        vDPBorderColor = findViewById(R.id.vDPBorderColor);
+        vDPSelectedColor = findViewById(R.id.vDPSelectedColor);
+        btnProfile = findViewById(R.id.btnProfile);
 
         btnBack.setOnClickListener(v -> finish());
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
 
         updateCheckMarks();
         updateColorPreviews();
         updateStyleChecks();
-        updateDatePickerStyleChecks();
+        updateDPColorPreviews();
     }
 
     private void setupThemeSelection() {
@@ -191,11 +197,11 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupCalendarColorPickers() {
-        vCalTextColor.setOnClickListener(v -> showColorPicker("Text Color", true));
-        vCalBgColor.setOnClickListener(v -> showColorPicker("Background Color", false));
+        vCalTextColor.setOnClickListener(v -> showColorPicker("Text Color", 4));
+        vCalBgColor.setOnClickListener(v -> showColorPicker("Background Color", 5));
     }
 
-    private void showColorPicker(String title, final boolean isTextColor) {
+    private void showColorPicker(String title, final int colorType) {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_color_picker, null);
         TextView tvTitle = dialogView.findViewById(R.id.tvColorPickerTitle);
         TextView tvCurrent = dialogView.findViewById(R.id.tvCurrentColor);
@@ -203,9 +209,15 @@ public class SettingsActivity extends AppCompatActivity {
         EditText etCustomColor = dialogView.findViewById(R.id.etCustomColor);
 
         tvTitle.setText("Choose " + title);
-        final int currentColor = isTextColor
-                ? GhibliTheme.getCalendarTextColor(this)
-                : GhibliTheme.getCalendarBackgroundColor(this);
+        final int currentColor;
+        switch (colorType) {
+            case 1: currentColor = GhibliTheme.getDPFontColor(this); break;
+            case 2: currentColor = GhibliTheme.getDPBorderColor(this); break;
+            case 3: currentColor = GhibliTheme.getDPSelectedColor(this); break;
+            case 4: currentColor = GhibliTheme.getCalendarTextColor(this); break;
+            case 5: currentColor = GhibliTheme.getCalendarBackgroundColor(this); break;
+            default: currentColor = Color.BLACK;
+        }
         tvCurrent.setText("Current: " + String.format("#%06X", 0xFFFFFF & currentColor));
 
         // Predefined colors
@@ -234,11 +246,8 @@ public class SettingsActivity extends AppCompatActivity {
 
             final int selectedColor = color;
             swatch.setOnClickListener(v -> {
-                if (isTextColor) {
-                    GhibliTheme.saveCalendarTextColor(this, selectedColor);
-                } else {
-                    GhibliTheme.saveCalendarBackgroundColor(this, selectedColor);
-                }
+                saveColorByType(colorType, selectedColor);
+                updateDPColorPreviews();
                 updateColorPreviews();
             });
 
@@ -252,12 +261,18 @@ public class SettingsActivity extends AppCompatActivity {
         dialogView.findViewById(R.id.btnApplyCustom).setOnClickListener(v -> {
             String hex = etCustomColor.getText().toString().trim();
             try {
-                int color = Color.parseColor(hex);
-                if (isTextColor) {
-                    GhibliTheme.saveCalendarTextColor(this, color);
-                } else {
-                    GhibliTheme.saveCalendarBackgroundColor(this, color);
+                // Validate hex string length
+                if (hex.length() < 4 || hex.length() > 9) {
+                    Toast.makeText(this, "Invalid color format. Use #RGB, #RRGGBB, or #AARRGGBB", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+                // Ensure it starts with #
+                if (!hex.startsWith("#")) {
+                    hex = "#" + hex;
+                }
+                int color = Color.parseColor(hex);
+                saveColorByType(colorType, color);
+                updateDPColorPreviews();
                 updateColorPreviews();
             } catch (IllegalArgumentException e) {
                 Toast.makeText(this, "Invalid color format. Use #RRGGBB", Toast.LENGTH_SHORT).show();
@@ -268,6 +283,16 @@ public class SettingsActivity extends AppCompatActivity {
         dialogView.findViewById(R.id.btnOk).setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
+    }
+
+    private void saveColorByType(int colorType, int color) {
+        switch (colorType) {
+            case 1: GhibliTheme.saveDPFontColor(this, color); break;
+            case 2: GhibliTheme.saveDPBorderColor(this, color); break;
+            case 3: GhibliTheme.saveDPSelectedColor(this, color); break;
+            case 4: GhibliTheme.saveCalendarTextColor(this, color); break;
+            case 5: GhibliTheme.saveCalendarBackgroundColor(this, color); break;
+        }
     }
 
     private void setupCalendarStyle() {
@@ -291,25 +316,55 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupDatePickerStyle() {
-        flDatePickerDefault.setOnClickListener(v -> selectDatePickerStyle(GhibliTheme.DATE_PICKER_STYLE_DEFAULT));
-        flDatePickerPink.setOnClickListener(v -> selectDatePickerStyle(GhibliTheme.DATE_PICKER_STYLE_PINK));
-        flDatePickerGreen.setOnClickListener(v -> selectDatePickerStyle(GhibliTheme.DATE_PICKER_STYLE_GREEN));
-        flDatePickerBlue.setOnClickListener(v -> selectDatePickerStyle(GhibliTheme.DATE_PICKER_STYLE_BLUE));
-        flDatePickerPurple.setOnClickListener(v -> selectDatePickerStyle(GhibliTheme.DATE_PICKER_STYLE_PURPLE));
+        // Setup font family button
+        String[] fonts = {"sans-serif", "sans-serif-light", "sans-serif-medium", "serif", "monospace"};
+        String currentFont = GhibliTheme.getDPFont(this);
+        btnFontFamily.setText(currentFont);
+        btnFontFamily.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Select Font Family")
+                    .setItems(fonts, (dialog, which) -> {
+                        GhibliTheme.saveDPFont(SettingsActivity.this, fonts[which]);
+                        btnFontFamily.setText(fonts[which]);
+                    })
+                    .show();
+        });
+
+        // Setup font size button
+        int[] fontSizes = {12, 14, 16, 18, 20, 22, 24};
+        int currentSize = GhibliTheme.getDPFontSize(this);
+        btnFontSize.setText(String.valueOf(currentSize));
+        btnFontSize.setOnClickListener(v -> {
+            String[] sizeStrings = new String[fontSizes.length];
+            for (int i = 0; i < fontSizes.length; i++) {
+                sizeStrings[i] = String.valueOf(fontSizes[i]);
+            }
+            new AlertDialog.Builder(this)
+                    .setTitle("Select Font Size")
+                    .setItems(sizeStrings, (dialog, which) -> {
+                        GhibliTheme.saveDPFontSize(SettingsActivity.this, fontSizes[which]);
+                        btnFontSize.setText(sizeStrings[which]);
+                    })
+                    .show();
+        });
+
+        // Setup color swatches
+        updateDPColorPreviews();
+        vDPFontColor.setOnClickListener(v -> showColorPicker("Font Color", 1));
+        vDPBorderColor.setOnClickListener(v -> showColorPicker("Border Color", 2));
+        vDPSelectedColor.setOnClickListener(v -> showColorPicker("Selected Day Color", 3));
     }
 
-    private void selectDatePickerStyle(int style) {
-        GhibliTheme.saveDatePickerStyle(this, style);
-        updateDatePickerStyleChecks();
-    }
-
-    private void updateDatePickerStyleChecks() {
-        int current = GhibliTheme.getDatePickerStyle(this);
-        ivCheckDatePickerDefault.setVisibility(current == GhibliTheme.DATE_PICKER_STYLE_DEFAULT ? View.VISIBLE : View.GONE);
-        ivCheckDatePickerPink.setVisibility(current == GhibliTheme.DATE_PICKER_STYLE_PINK ? View.VISIBLE : View.GONE);
-        ivCheckDatePickerGreen.setVisibility(current == GhibliTheme.DATE_PICKER_STYLE_GREEN ? View.VISIBLE : View.GONE);
-        ivCheckDatePickerBlue.setVisibility(current == GhibliTheme.DATE_PICKER_STYLE_BLUE ? View.VISIBLE : View.GONE);
-        ivCheckDatePickerPurple.setVisibility(current == GhibliTheme.DATE_PICKER_STYLE_PURPLE ? View.VISIBLE : View.GONE);
+    private void updateDPColorPreviews() {
+        int fontColor = GhibliTheme.getDPFontColor(this);
+        int borderColor = GhibliTheme.getDPBorderColor(this);
+        int selectedColor = GhibliTheme.getDPSelectedColor(this);
+        GradientDrawable fontDrawable = (GradientDrawable) vDPFontColor.getBackground();
+        fontDrawable.setColor(fontColor);
+        GradientDrawable borderDrawable = (GradientDrawable) vDPBorderColor.getBackground();
+        borderDrawable.setColor(borderColor);
+        GradientDrawable selectedDrawable = (GradientDrawable) vDPSelectedColor.getBackground();
+        selectedDrawable.setColor(selectedColor);
     }
 
     private void setupLogout() {

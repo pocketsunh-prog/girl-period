@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.girlperiod.app.data.DatabaseHelper;
+import com.girlperiod.app.data.Event;
 import com.girlperiod.app.data.PeriodRecord;
 import com.girlperiod.app.data.User;
 import com.girlperiod.app.ui.GhibliTheme;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
     private List<PeriodRecord> periodRecords;
+    private List<Event> events;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
@@ -154,9 +156,13 @@ public class MainActivity extends AppCompatActivity {
         User currentUser = sessionManager.getCurrentUser();
         if (currentUser != null) {
             periodRecords = dbHelper.getPeriodRecordsByUser(currentUser.getId());
+            events = dbHelper.getEventsByUser(currentUser.getId());
         }
         if (periodRecords == null) {
             periodRecords = new ArrayList<>();
+        }
+        if (events == null) {
+            events = new ArrayList<>();
         }
     }
 
@@ -201,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
         TextView tvLunarDate = cellView.findViewById(R.id.tvLunarDate);
         ImageView ivWeatherIcon = cellView.findViewById(R.id.ivWeatherIcon);
         View vPeriodHighlight = cellView.findViewById(R.id.vPeriodHighlight);
-        View vTodayHighlight = cellView.findViewById(R.id.vTodayHighlight);
+        ImageView vTodayHighlight = cellView.findViewById(R.id.vTodayHighlight);
+        View vEventHighlight = cellView.findViewById(R.id.vEventHighlight);
 
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
         params.width = 0;
@@ -216,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
             ivWeatherIcon.setVisibility(View.GONE);
             vPeriodHighlight.setVisibility(View.GONE);
             vTodayHighlight.setVisibility(View.GONE);
+            vEventHighlight.setVisibility(View.GONE);
             cellView.setOnClickListener(null);
             gridCalendar.addView(cellView);
             return;
@@ -241,6 +249,19 @@ public class MainActivity extends AppCompatActivity {
         if (weather != null) {
             int iconRes = getWeatherIconResource(weather.getDescription());
             ivWeatherIcon.setImageResource(iconRes);
+        }
+
+        // Check if this day has events
+        String dayDateStr = String.format("%04d-%02d-%02d",
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                day);
+        boolean hasEvent = false;
+        for (Event event : events) {
+            if (event.getEventDate().equals(dayDateStr)) {
+                hasEvent = true;
+                break;
+            }
         }
 
         // Apply calendar colors from settings
@@ -274,42 +295,58 @@ public class MainActivity extends AppCompatActivity {
         }
         cellView.setBackground(bgDrawable);
 
-        // Text colors & highlights — transparent highlights, start/end with black text + border
+        // Text colors & highlights — event highlight shown when day has events
         if (isStartDate) {
             // Start date: transparent pink highlight, black text, pink border
             vPeriodHighlight.setVisibility(View.VISIBLE);
             vPeriodHighlight.setBackgroundResource(R.drawable.bg_calendar_start_date);
+            vEventHighlight.setVisibility(hasEvent ? View.VISIBLE : View.GONE);
             tvDayNumber.setTextColor(getResources().getColor(R.color.black));
             tvLunarDate.setTextColor(getResources().getColor(R.color.black));
         } else if (isEndDate) {
             // End date: transparent purple highlight, black text, purple border
             vPeriodHighlight.setVisibility(View.VISIBLE);
             vPeriodHighlight.setBackgroundResource(R.drawable.bg_calendar_end_date);
+            vEventHighlight.setVisibility(hasEvent ? View.VISIBLE : View.GONE);
             tvDayNumber.setTextColor(getResources().getColor(R.color.black));
             tvLunarDate.setTextColor(getResources().getColor(R.color.black));
         } else if (isPeriodDay) {
             // Middle period days: transparent pink highlight, black text
             vPeriodHighlight.setVisibility(View.VISIBLE);
             vPeriodHighlight.setBackgroundResource(R.drawable.bg_circle_period);
+            vEventHighlight.setVisibility(hasEvent ? View.VISIBLE : View.GONE);
             tvDayNumber.setTextColor(getResources().getColor(R.color.black));
             tvLunarDate.setTextColor(getResources().getColor(R.color.black));
         } else if (isPredictedDay) {
             vPeriodHighlight.setVisibility(View.VISIBLE);
             vPeriodHighlight.setBackgroundResource(R.drawable.bg_circle_predicted);
+            vEventHighlight.setVisibility(hasEvent ? View.VISIBLE : View.GONE);
             tvDayNumber.setTextColor(getResources().getColor(R.color.period_pink_dark));
             tvLunarDate.setTextColor(getResources().getColor(R.color.period_pink_dark));
         } else if (isToday) {
             vPeriodHighlight.setVisibility(View.GONE);
             vTodayHighlight.setVisibility(View.VISIBLE);
-            vTodayHighlight.setBackgroundResource(R.drawable.bg_calendar_today_green);
+            vEventHighlight.setVisibility(hasEvent ? View.VISIBLE : View.GONE);
             tvDayNumber.setTextColor(Color.WHITE);
             tvLunarDate.setTextColor(Color.WHITE);
+        } else if (hasEvent) {
+            // Event day: orange highlight with black text
+            vPeriodHighlight.setVisibility(View.GONE);
+            vTodayHighlight.setVisibility(View.GONE);
+            vEventHighlight.setVisibility(View.VISIBLE);
+            tvDayNumber.setTextColor(getResources().getColor(R.color.black));
+            tvLunarDate.setTextColor(getResources().getColor(R.color.black));
         } else {
             vPeriodHighlight.setVisibility(View.GONE);
             vTodayHighlight.setVisibility(View.GONE);
+            vEventHighlight.setVisibility(View.GONE);
             tvDayNumber.setTextColor(calTextColor);
             tvLunarDate.setTextColor(getResources().getColor(R.color.text_secondary));
         }
+
+        // Event indicator - show dot if there are events on this day
+        View vIndicatorEvent = cellView.findViewById(R.id.vIndicatorEvent);
+        vIndicatorEvent.setVisibility(hasEvent ? View.VISIBLE : View.GONE);
 
         // Click handler
         final int selectedDay = day;
@@ -368,18 +405,36 @@ public class MainActivity extends AppCompatActivity {
             message.append("\nPredicted Period");
         }
 
+        // Show events for this day
+        String dayDateStr = String.format("%04d-%02d-%02d",
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                day);
+        List<Event> dayEvents = new ArrayList<>();
+        for (Event event : events) {
+            if (event.getEventDate().equals(dayDateStr)) {
+                dayEvents.add(event);
+            }
+        }
+        if (!dayEvents.isEmpty()) {
+            message.append("\n\nEvents:");
+            for (Event event : dayEvents) {
+                message.append("\n• ").append(event.getTitle());
+            }
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle("Day Details")
                 .setMessage(message.toString());
 
         if (recordId[0] > 0) {
             // Show Edit/Delete buttons for period dates
-            builder.setPositiveButton("Edit", (dialog, which) -> {
+            builder.setPositiveButton("Edit Period", (dialog, which) -> {
                 Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
                 intent.putExtra("record_id", recordId[0]);
                 startActivity(intent);
             });
-            builder.setNegativeButton("Delete", (dialog, which) -> {
+            builder.setNegativeButton("Delete Period", (dialog, which) -> {
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle("Delete Period")
                         .setMessage("Are you sure you want to delete this period record?")
@@ -391,15 +446,56 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton("Cancel", null)
                         .show();
             });
-            builder.setNeutralButton("OK", null);
-        } else {
-            // Show Add Period button for non-period dates
-            builder.setPositiveButton("OK", null);
+            if (!dayEvents.isEmpty()) {
+                builder.setNeutralButton("Edit Event", (dialog, which) -> {
+                    Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                    intent.putExtra("event_id", dayEvents.get(0).getId());
+                    startActivity(intent);
+                });
+            } else {
+                builder.setNeutralButton("Add Event", (dialog, which) -> {
+                    Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                    intent.putExtra("selected_date", cal.getTimeInMillis());
+                    startActivity(intent);
+                });
+            }
+        } else if (!dayEvents.isEmpty()) {
+            // Show Edit/Delete buttons for event dates
+            builder.setPositiveButton("Edit Event", (dialog, which) -> {
+                Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                intent.putExtra("event_id", dayEvents.get(0).getId());
+                startActivity(intent);
+            });
+            builder.setNegativeButton("Delete Event", (dialog, which) -> {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Delete Event")
+                        .setMessage("Are you sure you want to delete this event?")
+                        .setPositiveButton("Delete", (d, w) -> {
+                            dbHelper.deleteEvent(dayEvents.get(0).getId());
+                            loadPeriodRecords();
+                            setupCalendar();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
             builder.setNeutralButton("Add Period", (dialog, which) -> {
                 Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
                 intent.putExtra("selected_date", cal.getTimeInMillis());
                 startActivity(intent);
             });
+        } else {
+            // Show Add Period and Add Event buttons for non-period dates
+            builder.setPositiveButton("Add Event", (dialog, which) -> {
+                Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                intent.putExtra("selected_date", cal.getTimeInMillis());
+                startActivity(intent);
+            });
+            builder.setNegativeButton("Add Period", (dialog, which) -> {
+                Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
+                intent.putExtra("selected_date", cal.getTimeInMillis());
+                startActivity(intent);
+            });
+            builder.setNeutralButton("OK", null);
         }
 
         builder.show();

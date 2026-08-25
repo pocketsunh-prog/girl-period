@@ -82,6 +82,15 @@
             android:layout_height="6dp"
             android:background="@drawable/bg_indicator_rainfall" />
 
+        <!-- Event Indicator -->
+        <View
+            android:id="@+id/vIndicatorEvent"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_indicator_event"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <!-- Period Highlight Overlay -->
@@ -97,11 +106,23 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Today Highlight Overlay -->
-    <View
+    <ImageView
         android:id="@+id/vTodayHighlight"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_calendar_day_today"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_long_cat"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Event Highlight Overlay -->
+    <View
+        android:id="@+id/vEventHighlight"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/bg_calendar_event"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

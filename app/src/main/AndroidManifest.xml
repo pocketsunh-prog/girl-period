@@ -62,9 +62,27 @@
             android:exported="false"
             android:theme="@style/Theme.GirlPeriod" />
 
+        <!-- Profile Activity -->
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.GirlPeriod" />
+
+        <!-- Event Activity -->
+        <activity
+            android:name=".EventActivity"
+            android:exported="false"
+            android:theme="@style/Theme.GirlPeriod" />
+
         <!-- Period Notification Service -->
         <service
             android:name=".PeriodNotificationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Event Notification Service -->
+        <service
+            android:name=".EventNotificationService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
@@ -75,6 +93,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Event Notification Receiver -->
+        <receiver
+            android:name=".EventNotificationReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 

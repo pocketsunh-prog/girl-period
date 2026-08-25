@@ -21,6 +21,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COL_PASSWORD = "password";
     private static final String COL_FINGERPRINT_ENABLED = "fingerprint_enabled";
     private static final String COL_CREATED_AT = "created_at";
+    private static final String COL_DOB = "dob";
+    private static final String COL_PROFILE_IMAGE = "profile_image";
 
     // Table: period_records
     private static final String TABLE_PERIOD_RECORDS = "period_records";
@@ -30,6 +32,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COL_END_DATE = "end_date";
     private static final String COL_CYCLE_LENGTH = "cycle_length";
     private static final String COL_NOTES = "notes";
+
+    // Table: events
+    private static final String TABLE_EVENTS = "events";
+    private static final String COL_EVENT_ID = "id";
+    private static final String COL_EVENT_USER_ID = "user_id";
+    private static final String COL_EVENT_TITLE = "title";
+    private static final String COL_EVENT_DATE = "event_date";
+    private static final String COL_EVENT_NOTES = "notes";
+    private static final String COL_EVENT_REMINDER_DAYS = "reminder_days";
+    private static final String COL_EVENT_CREATED_AT = "created_at";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -42,6 +54,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COL_USERNAME + " TEXT UNIQUE NOT NULL, "
                 + COL_PASSWORD + " TEXT NOT NULL, "
                 + COL_FINGERPRINT_ENABLED + " INTEGER DEFAULT 0, "
+                + COL_DOB + " TEXT, "
+                + COL_PROFILE_IMAGE + " TEXT, "
                 + COL_CREATED_AT + " TEXT"
                 + ")";
         db.execSQL(createUsersTable);
@@ -56,10 +70,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "FOREIGN KEY(" + COL_RECORD_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COL_USER_ID + ")"
                 + ")";
         db.execSQL(createPeriodRecordsTable);
+
+        String createEventsTable = "CREATE TABLE " + TABLE_EVENTS + " ("
+                + COL_EVENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + COL_EVENT_USER_ID + " INTEGER, "
+                + COL_EVENT_TITLE + " TEXT NOT NULL, "
+                + COL_EVENT_DATE + " TEXT NOT NULL, "
+                + COL_EVENT_NOTES + " TEXT, "
+                + COL_EVENT_REMINDER_DAYS + " INTEGER DEFAULT 1, "
+                + COL_EVENT_CREATED_AT + " TEXT, "
+                + "FOREIGN KEY(" + COL_EVENT_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COL_USER_ID + ")"
+                + ")";
+        db.execSQL(createEventsTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EVENTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PERIOD_RECORDS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
@@ -176,7 +203,132 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(COL_PASSWORD)));
         user.setFingerprintEnabled(cursor.getInt(cursor.getColumnIndexOrThrow(COL_FINGERPRINT_ENABLED)) == 1);
         user.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(COL_CREATED_AT)));
+        int dobIndex = cursor.getColumnIndex(COL_DOB);
+        if (dobIndex >= 0 && !cursor.isNull(dobIndex)) {
+            user.setDob(cursor.getString(dobIndex));
+        }
+        int imgIndex = cursor.getColumnIndex(COL_PROFILE_IMAGE);
+        if (imgIndex >= 0 && !cursor.isNull(imgIndex)) {
+            user.setProfileImage(cursor.getString(imgIndex));
+        }
         return user;
+    }
+
+    // --- User profile methods ---
+
+    public int updateUserPassword(long userId, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PASSWORD, newPassword);
+        int rows = db.update(TABLE_USERS, values, COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)});
+        db.close();
+        return rows;
+    }
+
+    public int updateUserDob(long userId, String dob) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_DOB, dob);
+        int rows = db.update(TABLE_USERS, values, COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)});
+        db.close();
+        return rows;
+    }
+
+    public int updateUserProfileImage(long userId, String imagePath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PROFILE_IMAGE, imagePath);
+        int rows = db.update(TABLE_USERS, values, COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)});
+        db.close();
+        return rows;
+    }
+
+    // --- Event methods ---
+
+    public long addEvent(Event event) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_EVENT_USER_ID, event.getUserId());
+        values.put(COL_EVENT_TITLE, event.getTitle());
+        values.put(COL_EVENT_DATE, event.getEventDate());
+        values.put(COL_EVENT_NOTES, event.getNotes());
+        values.put(COL_EVENT_REMINDER_DAYS, event.getReminderDays());
+        values.put(COL_EVENT_CREATED_AT, String.valueOf(System.currentTimeMillis()));
+        long id = db.insert(TABLE_EVENTS, null, values);
+        db.close();
+        return id;
+    }
+
+    public List<Event> getEventsByUser(long userId) {
+        List<Event> events = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_EVENTS, null, COL_EVENT_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)}, null, null, COL_EVENT_DATE + " ASC");
+        if (cursor.moveToFirst()) {
+            do {
+                events.add(cursorToEvent(cursor));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return events;
+    }
+
+    public List<Event> getEventsByDate(long userId, String date) {
+        List<Event> events = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_EVENTS, null,
+                COL_EVENT_USER_ID + " = ? AND " + COL_EVENT_DATE + " = ?",
+                new String[]{String.valueOf(userId), date}, null, null, COL_EVENT_DATE + " ASC");
+        if (cursor.moveToFirst()) {
+            do {
+                events.add(cursorToEvent(cursor));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return events;
+    }
+
+    public int updateEvent(Event event) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_EVENT_TITLE, event.getTitle());
+        values.put(COL_EVENT_DATE, event.getEventDate());
+        values.put(COL_EVENT_NOTES, event.getNotes());
+        values.put(COL_EVENT_REMINDER_DAYS, event.getReminderDays());
+        int rows = db.update(TABLE_EVENTS, values, COL_EVENT_ID + " = ?",
+                new String[]{String.valueOf(event.getId())});
+        db.close();
+        return rows;
+    }
+
+    public int deleteEvent(long eventId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int rows = db.delete(TABLE_EVENTS, COL_EVENT_ID + " = ?",
+                new String[]{String.valueOf(eventId)});
+        db.close();
+        return rows;
+    }
+
+    private Event cursorToEvent(Cursor cursor) {
+        Event event = new Event();
+        event.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COL_EVENT_ID)));
+        event.setUserId(cursor.getLong(cursor.getColumnIndexOrThrow(COL_EVENT_USER_ID)));
+        event.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(COL_EVENT_TITLE)));
+        event.setEventDate(cursor.getString(cursor.getColumnIndexOrThrow(COL_EVENT_DATE)));
+        int notesIndex = cursor.getColumnIndex(COL_EVENT_NOTES);
+        if (notesIndex >= 0 && !cursor.isNull(notesIndex)) {
+            event.setNotes(cursor.getString(notesIndex));
+        }
+        int reminderIndex = cursor.getColumnIndex(COL_EVENT_REMINDER_DAYS);
+        if (reminderIndex >= 0) {
+            event.setReminderDays(cursor.getInt(reminderIndex));
+        }
+        return event;
     }
 
     // --- Period record methods ---

@@ -1,7 +1,5 @@
 package com.girlperiod.app;
 
-import android.app.DatePickerDialog;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -16,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.girlperiod.app.data.DatabaseHelper;
 import com.girlperiod.app.data.PeriodRecord;
 import com.girlperiod.app.data.User;
+import com.girlperiod.app.ui.GhibliDatePickerDialog;
 import com.girlperiod.app.ui.GhibliTheme;
 
 import java.text.SimpleDateFormat;
@@ -128,93 +127,18 @@ public class AddPeriodActivity extends AppCompatActivity {
 
     private void setupDatePickers() {
         btnStartDate.setOnClickListener(v -> {
-            DatePickerDialog dialog = new DatePickerDialog(
-                    AddPeriodActivity.this,
-                    (view, year, month, dayOfMonth) -> {
-                        startDateCalendar.set(Calendar.YEAR, year);
-                        startDateCalendar.set(Calendar.MONTH, month);
-                        startDateCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                        updateStartDateDisplay();
-                    },
-                    startDateCalendar.get(Calendar.YEAR),
-                    startDateCalendar.get(Calendar.MONTH),
-                    startDateCalendar.get(Calendar.DAY_OF_MONTH)
-            );
-            dialog.setTitle("Select Start Date");
-            styleDatePicker(dialog);
-            dialog.show();
+            new GhibliDatePickerDialog(AddPeriodActivity.this, startDateCalendar, date -> {
+                startDateCalendar.setTime(date.getTime());
+                updateStartDateDisplay();
+            }).show();
         });
 
         btnEndDate.setOnClickListener(v -> {
-            DatePickerDialog dialog = new DatePickerDialog(
-                    AddPeriodActivity.this,
-                    (view, year, month, dayOfMonth) -> {
-                        endDateCalendar.set(Calendar.YEAR, year);
-                        endDateCalendar.set(Calendar.MONTH, month);
-                        endDateCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                        updateEndDateDisplay();
-                    },
-                    endDateCalendar.get(Calendar.YEAR),
-                    endDateCalendar.get(Calendar.MONTH),
-                    endDateCalendar.get(Calendar.DAY_OF_MONTH)
-            );
-            dialog.setTitle("Select End Date");
-            styleDatePicker(dialog);
-            dialog.show();
+            new GhibliDatePickerDialog(AddPeriodActivity.this, endDateCalendar, date -> {
+                endDateCalendar.setTime(date.getTime());
+                updateEndDateDisplay();
+            }).show();
         });
-    }
-
-    private void styleDatePicker(DatePickerDialog dialog) {
-        // Get the selected date picker style from settings
-        int style = GhibliTheme.getDatePickerStyle(this);
-
-        // Apply border based on style
-        switch (style) {
-            case GhibliTheme.DATE_PICKER_STYLE_PINK:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_pink);
-                break;
-            case GhibliTheme.DATE_PICKER_STYLE_GREEN:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_green);
-                break;
-            case GhibliTheme.DATE_PICKER_STYLE_BLUE:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_blue);
-                break;
-            case GhibliTheme.DATE_PICKER_STYLE_PURPLE:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_purple);
-                break;
-            default: // DATE_PICKER_STYLE_DEFAULT
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_border);
-                break;
-        }
-
-        // Style the title text
-        int titleId = getResources().getIdentifier("alertTitle", "id", "android");
-        if (titleId != 0) {
-            android.widget.TextView title = dialog.findViewById(titleId);
-            if (title != null) {
-                int titleColor;
-                switch (style) {
-                    case GhibliTheme.DATE_PICKER_STYLE_PINK:
-                        titleColor = Color.parseColor("#FFE91E63");
-                        break;
-                    case GhibliTheme.DATE_PICKER_STYLE_GREEN:
-                        titleColor = Color.parseColor("#FF388E3C");
-                        break;
-                    case GhibliTheme.DATE_PICKER_STYLE_BLUE:
-                        titleColor = Color.parseColor("#FF2196F3");
-                        break;
-                    case GhibliTheme.DATE_PICKER_STYLE_PURPLE:
-                        titleColor = Color.parseColor("#FF9C27B0");
-                        break;
-                    default:
-                        titleColor = getResources().getColor(R.color.primary_pink);
-                        break;
-                }
-                title.setTextColor(titleColor);
-                title.setTextSize(18);
-                title.setPadding(24, 16, 24, 8);
-            }
-        }
     }
 
     private void setupButtons() {
