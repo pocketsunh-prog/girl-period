@@ -1,6 +1,8 @@
 package com.girlperiod.app;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -95,10 +97,25 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        findViewById(R.id.btnToday).setOnClickListener(v -> {
+            currentMonth = Calendar.getInstance();
+            setupCalendar();
+            updateWeatherSummary();
+        });
+
+        // Year selection - click month/year text to pick year
+        tvMonthYear.setOnClickListener(v -> showYearPicker());
+
         com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_charts) {
+            if (itemId == R.id.nav_calendar) {
+                // Calendar icon goes to today
+                currentMonth = Calendar.getInstance();
+                setupCalendar();
+                updateWeatherSummary();
+                return true;
+            } else if (itemId == R.id.nav_charts) {
                 Intent intent = new Intent(MainActivity.this, ChartActivity.class);
                 startActivity(intent);
                 return true;
@@ -109,6 +126,28 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    private void showYearPicker() {
+        int currentYear = currentMonth.get(Calendar.YEAR);
+        // Generate year list: 50 years before and after current year
+        int startYear = currentYear - 50;
+        int endYear = currentYear + 50;
+        int yearsCount = endYear - startYear + 1;
+        final String[] years = new String[yearsCount];
+        for (int i = 0; i < yearsCount; i++) {
+            years[i] = String.valueOf(startYear + i);
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Select Year")
+                .setItems(years, (dialog, which) -> {
+                    int selectedYear = startYear + which;
+                    currentMonth.set(Calendar.YEAR, selectedYear);
+                    setupCalendar();
+                    updateWeatherSummary();
+                })
+                .show();
     }
 
     private void loadPeriodRecords() {
@@ -136,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Add empty cells before the 1st
         for (int i = 0; i < firstDayOfWeek; i++) {
-            addDayCell(0, false, false, false, null);
+            addDayCell(0, false, false, false, false, false, null);
         }
 
         // Add actual days
@@ -144,14 +183,17 @@ public class MainActivity extends AppCompatActivity {
         for (int day = 1; day <= daysInMonth; day++) {
             cal.set(Calendar.DAY_OF_MONTH, day);
             boolean isToday = isSameDay(cal, today);
-            boolean isPeriodDay = isPeriodDay(cal);
+            boolean isPeriod = isPeriodDay(cal);
+            boolean isStart = isStartDate(cal);
+            boolean isEnd = isEndDate(cal);
             boolean isPredictedDay = isPredictedDay(cal);
             WeatherService.WeatherData weather = getWeatherForDate(cal);
-            addDayCell(day, isToday, isPeriodDay, isPredictedDay, weather);
+            addDayCell(day, isToday, isPeriod, isStart, isEnd, isPredictedDay, weather);
         }
     }
 
     private void addDayCell(int day, boolean isToday, boolean isPeriodDay,
+                            boolean isStartDate, boolean isEndDate,
                             boolean isPredictedDay, WeatherService.WeatherData weather) {
         View cellView = getLayoutInflater().inflate(R.layout.item_calendar_day, gridCalendar, false);
 
@@ -201,31 +243,83 @@ public class MainActivity extends AppCompatActivity {
             ivWeatherIcon.setImageResource(iconRes);
         }
 
-        // Highlights
-        if (isPeriodDay) {
+        // Apply calendar colors from settings
+        int calTextColor = GhibliTheme.getCalendarTextColor(this);
+        int calBgColor = GhibliTheme.getCalendarBackgroundColor(this);
+        int calStyle = GhibliTheme.getCalendarStyle(this);
+
+        // Apply background color to cell
+        GradientDrawable bgDrawable = new GradientDrawable();
+        bgDrawable.setShape(GradientDrawable.RECTANGLE);
+        bgDrawable.setColor(calBgColor);
+
+        // Apply style (corner radius)
+        switch (calStyle) {
+            case GhibliTheme.CAL_STYLE_COMPACT:
+                bgDrawable.setCornerRadius(4f);
+                bgDrawable.setStroke(1, Color.parseColor("#E0E0E0"));
+                break;
+            case GhibliTheme.CAL_STYLE_ROUNDED:
+                bgDrawable.setCornerRadius(16f);
+                bgDrawable.setStroke(1, Color.parseColor("#E0E0E0"));
+                break;
+            case GhibliTheme.CAL_STYLE_MINIMAL:
+                bgDrawable.setCornerRadius(0f);
+                bgDrawable.setStroke(1, Color.parseColor("#E0E0E0"));
+                break;
+            default: // CAL_STYLE_DEFAULT
+                bgDrawable.setCornerRadius(8f);
+                bgDrawable.setStroke(1, Color.parseColor("#E0E0E0"));
+                break;
+        }
+        cellView.setBackground(bgDrawable);
+
+        // Text colors & highlights — transparent highlights, start/end with black text + border
+        if (isStartDate) {
+            // Start date: transparent pink highlight, black text, pink border
             vPeriodHighlight.setVisibility(View.VISIBLE);
+            vPeriodHighlight.setBackgroundResource(R.drawable.bg_calendar_start_date);
+            tvDayNumber.setTextColor(getResources().getColor(R.color.black));
+            tvLunarDate.setTextColor(getResources().getColor(R.color.black));
+        } else if (isEndDate) {
+            // End date: transparent purple highlight, black text, purple border
+            vPeriodHighlight.setVisibility(View.VISIBLE);
+            vPeriodHighlight.setBackgroundResource(R.drawable.bg_calendar_end_date);
+            tvDayNumber.setTextColor(getResources().getColor(R.color.black));
+            tvLunarDate.setTextColor(getResources().getColor(R.color.black));
+        } else if (isPeriodDay) {
+            // Middle period days: transparent pink highlight, black text
+            vPeriodHighlight.setVisibility(View.VISIBLE);
+            vPeriodHighlight.setBackgroundResource(R.drawable.bg_circle_period);
+            tvDayNumber.setTextColor(getResources().getColor(R.color.black));
+            tvLunarDate.setTextColor(getResources().getColor(R.color.black));
         } else if (isPredictedDay) {
             vPeriodHighlight.setVisibility(View.VISIBLE);
             vPeriodHighlight.setBackgroundResource(R.drawable.bg_circle_predicted);
+            tvDayNumber.setTextColor(getResources().getColor(R.color.period_pink_dark));
+            tvLunarDate.setTextColor(getResources().getColor(R.color.period_pink_dark));
+        } else if (isToday) {
+            vPeriodHighlight.setVisibility(View.GONE);
+            vTodayHighlight.setVisibility(View.VISIBLE);
+            vTodayHighlight.setBackgroundResource(R.drawable.bg_calendar_today_green);
+            tvDayNumber.setTextColor(Color.WHITE);
+            tvLunarDate.setTextColor(Color.WHITE);
         } else {
             vPeriodHighlight.setVisibility(View.GONE);
-        }
-
-        if (isToday) {
-            vTodayHighlight.setVisibility(View.VISIBLE);
-        } else {
             vTodayHighlight.setVisibility(View.GONE);
+            tvDayNumber.setTextColor(calTextColor);
+            tvLunarDate.setTextColor(getResources().getColor(R.color.text_secondary));
         }
 
         // Click handler
         final int selectedDay = day;
-        cellView.setOnClickListener(v -> showDayDetailDialog(selectedDay, isPeriodDay, isPredictedDay, weather));
+        cellView.setOnClickListener(v -> showDayDetailDialog(selectedDay, isPeriodDay, isStartDate, isEndDate, isPredictedDay, weather));
 
         gridCalendar.addView(cellView);
     }
 
-    private void showDayDetailDialog(int day, boolean isPeriodDay, boolean isPredictedDay,
-                                     WeatherService.WeatherData weather) {
+    private void showDayDetailDialog(int day, boolean isPeriodDay, boolean isStartDate, boolean isEndDate,
+                                     boolean isPredictedDay, WeatherService.WeatherData weather) {
         Calendar cal = (Calendar) currentMonth.clone();
         cal.set(Calendar.DAY_OF_MONTH, day);
 
@@ -248,22 +342,67 @@ public class MainActivity extends AppCompatActivity {
             message.append("Condition: ").append(weather.getDescription()).append("\n");
         }
 
-        if (isPeriodDay) {
+        // Find the record ID for start/end dates
+        final long[] recordId = {-1};
+        if (isStartDate || isEndDate) {
+            for (PeriodRecord record : periodRecords) {
+                Date startDate = record.getStartDateDate();
+                Date endDate = record.getEndDateDate();
+                if (startDate != null && endDate != null) {
+                    Date checkDate = cal.getTime();
+                    if (!checkDate.before(startDate) && !checkDate.after(endDate)) {
+                        recordId[0] = record.getId();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (isStartDate) {
+            message.append("\nStart Date");
+        } else if (isEndDate) {
+            message.append("\nEnd Date");
+        } else if (isPeriodDay) {
             message.append("\nPeriod Day");
         } else if (isPredictedDay) {
             message.append("\nPredicted Period");
         }
 
-        new AlertDialog.Builder(this)
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle("Day Details")
-                .setMessage(message.toString())
-                .setPositiveButton("OK", null)
-                .setNeutralButton("Add Period", (dialog, which) -> {
-                    Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
-                    intent.putExtra("selected_date", cal.getTimeInMillis());
-                    startActivity(intent);
-                })
-                .show();
+                .setMessage(message.toString());
+
+        if (recordId[0] > 0) {
+            // Show Edit/Delete buttons for period dates
+            builder.setPositiveButton("Edit", (dialog, which) -> {
+                Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
+                intent.putExtra("record_id", recordId[0]);
+                startActivity(intent);
+            });
+            builder.setNegativeButton("Delete", (dialog, which) -> {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Delete Period")
+                        .setMessage("Are you sure you want to delete this period record?")
+                        .setPositiveButton("Delete", (d, w) -> {
+                            dbHelper.deletePeriodRecord(recordId[0]);
+                            loadPeriodRecords();
+                            setupCalendar();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
+            builder.setNeutralButton("OK", null);
+        } else {
+            // Show Add Period button for non-period dates
+            builder.setPositiveButton("OK", null);
+            builder.setNeutralButton("Add Period", (dialog, which) -> {
+                Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
+                intent.putExtra("selected_date", cal.getTimeInMillis());
+                startActivity(intent);
+            });
+        }
+
+        builder.show();
     }
 
     private void updateWeatherSummary() {
@@ -291,6 +430,30 @@ public class MainActivity extends AppCompatActivity {
                 if (!checkDate.before(startDate) && !checkDate.after(endDate)) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    private boolean isStartDate(Calendar cal) {
+        for (PeriodRecord record : periodRecords) {
+            Date startDate = record.getStartDateDate();
+            if (startDate != null) {
+                Calendar startCal = Calendar.getInstance();
+                startCal.setTime(startDate);
+                if (isSameDay(startCal, cal)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isEndDate(Calendar cal) {
+        for (PeriodRecord record : periodRecords) {
+            Date endDate = record.getEndDateDate();
+            if (endDate != null) {
+                Calendar endCal = Calendar.getInstance();
+                endCal.setTime(endDate);
+                if (isSameDay(endCal, cal)) return true;
             }
         }
         return false;

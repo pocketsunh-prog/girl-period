@@ -1,7 +1,10 @@
 package com.girlperiod.app;
 
 import android.app.DatePickerDialog;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -17,6 +20,7 @@ import com.girlperiod.app.ui.GhibliTheme;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -29,6 +33,8 @@ public class AddPeriodActivity extends AppCompatActivity {
     private TextView btnEndDate;
     private EditText etNotes;
     private ImageButton btnBack;
+    private Button btnSave;
+    private Button btnDelete;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -64,18 +70,59 @@ public class AddPeriodActivity extends AppCompatActivity {
         btnEndDate = findViewById(R.id.btnEndDate);
         etNotes = findViewById(R.id.etNotes);
         btnBack = findViewById(R.id.btnBack);
+        btnSave = findViewById(R.id.btnSave);
+        btnDelete = findViewById(R.id.btnDelete);
 
         updateStartDateDisplay();
         updateEndDateDisplay();
     }
 
     private void checkEditMode() {
-        if (getIntent().hasExtra("selected_date")) {
-            long selectedDate = getIntent().getLongExtra("selected_date", System.currentTimeMillis());
-            startDateCalendar.setTimeInMillis(selectedDate);
-            endDateCalendar.setTimeInMillis(selectedDate);
-            updateStartDateDisplay();
-            updateEndDateDisplay();
+        // Check if editing an existing record
+        if (getIntent().hasExtra("record_id")) {
+            isEditMode = true;
+            editRecordId = getIntent().getLongExtra("record_id", -1);
+            tvTitle.setText("Edit Period");
+
+            // Load existing record
+            PeriodRecord record = null;
+            for (PeriodRecord r : dbHelper.getPeriodRecordsByUser(sessionManager.getCurrentUser().getId())) {
+                if (r.getId() == editRecordId) {
+                    record = r;
+                    break;
+                }
+            }
+
+            if (record != null) {
+                Date startDate = record.getStartDateDate();
+                Date endDate = record.getEndDateDate();
+                if (startDate != null) {
+                    startDateCalendar.setTime(startDate);
+                }
+                if (endDate != null) {
+                    endDateCalendar.setTime(endDate);
+                }
+                etNotes.setText(record.getNotes());
+                updateStartDateDisplay();
+                updateEndDateDisplay();
+            }
+
+            // Show delete button in edit mode
+            btnDelete.setVisibility(View.VISIBLE);
+        } else {
+            isEditMode = false;
+            editRecordId = -1;
+            tvTitle.setText("Add Period");
+            btnDelete.setVisibility(View.GONE);
+
+            // Check if new record with pre-selected date
+            if (getIntent().hasExtra("selected_date")) {
+                long selectedDate = getIntent().getLongExtra("selected_date", System.currentTimeMillis());
+                startDateCalendar.setTimeInMillis(selectedDate);
+                endDateCalendar.setTimeInMillis(selectedDate);
+                updateStartDateDisplay();
+                updateEndDateDisplay();
+            }
         }
     }
 
@@ -93,6 +140,8 @@ public class AddPeriodActivity extends AppCompatActivity {
                     startDateCalendar.get(Calendar.MONTH),
                     startDateCalendar.get(Calendar.DAY_OF_MONTH)
             );
+            dialog.setTitle("Select Start Date");
+            styleDatePicker(dialog);
             dialog.show();
         });
 
@@ -109,14 +158,77 @@ public class AddPeriodActivity extends AppCompatActivity {
                     endDateCalendar.get(Calendar.MONTH),
                     endDateCalendar.get(Calendar.DAY_OF_MONTH)
             );
+            dialog.setTitle("Select End Date");
+            styleDatePicker(dialog);
             dialog.show();
         });
+    }
+
+    private void styleDatePicker(DatePickerDialog dialog) {
+        // Get the selected date picker style from settings
+        int style = GhibliTheme.getDatePickerStyle(this);
+
+        // Apply border based on style
+        switch (style) {
+            case GhibliTheme.DATE_PICKER_STYLE_PINK:
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_pink);
+                break;
+            case GhibliTheme.DATE_PICKER_STYLE_GREEN:
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_green);
+                break;
+            case GhibliTheme.DATE_PICKER_STYLE_BLUE:
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_blue);
+                break;
+            case GhibliTheme.DATE_PICKER_STYLE_PURPLE:
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_purple);
+                break;
+            default: // DATE_PICKER_STYLE_DEFAULT
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.bg_date_picker_border);
+                break;
+        }
+
+        // Style the title text
+        int titleId = getResources().getIdentifier("alertTitle", "id", "android");
+        if (titleId != 0) {
+            android.widget.TextView title = dialog.findViewById(titleId);
+            if (title != null) {
+                int titleColor;
+                switch (style) {
+                    case GhibliTheme.DATE_PICKER_STYLE_PINK:
+                        titleColor = Color.parseColor("#FFE91E63");
+                        break;
+                    case GhibliTheme.DATE_PICKER_STYLE_GREEN:
+                        titleColor = Color.parseColor("#FF388E3C");
+                        break;
+                    case GhibliTheme.DATE_PICKER_STYLE_BLUE:
+                        titleColor = Color.parseColor("#FF2196F3");
+                        break;
+                    case GhibliTheme.DATE_PICKER_STYLE_PURPLE:
+                        titleColor = Color.parseColor("#FF9C27B0");
+                        break;
+                    default:
+                        titleColor = getResources().getColor(R.color.primary_pink);
+                        break;
+                }
+                title.setTextColor(titleColor);
+                title.setTextSize(18);
+                title.setPadding(24, 16, 24, 8);
+            }
+        }
     }
 
     private void setupButtons() {
         btnBack.setOnClickListener(v -> finish());
 
-        findViewById(R.id.btnSave).setOnClickListener(v -> savePeriodRecord());
+        btnSave.setOnClickListener(v -> {
+            if (isEditMode) {
+                updatePeriodRecord();
+            } else {
+                savePeriodRecord();
+            }
+        });
+
+        btnDelete.setOnClickListener(v -> confirmDelete());
     }
 
     private void savePeriodRecord() {
@@ -146,8 +258,8 @@ public class AddPeriodActivity extends AppCompatActivity {
         long userId = currentUser.getId();
         PeriodRecord lastPeriod = dbHelper.getLastPeriod(userId);
         if (lastPeriod != null) {
-            java.util.Date lastStart = lastPeriod.getStartDate();
-            java.util.Date thisStart = record.getStartDate();
+            Date lastStart = lastPeriod.getStartDateDate();
+            Date thisStart = record.getStartDateDate();
             if (lastStart != null && thisStart != null) {
                 long diff = thisStart.getTime() - lastStart.getTime();
                 int cycleDays = (int) (diff / (1000 * 60 * 60 * 24));
@@ -164,6 +276,56 @@ public class AddPeriodActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Failed to save record", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void updatePeriodRecord() {
+        if (endDateCalendar.before(startDateCalendar)) {
+            Toast.makeText(this, "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String startDateStr = dbDateFormat.format(startDateCalendar.getTime());
+        String endDateStr = dbDateFormat.format(endDateCalendar.getTime());
+        String notes = etNotes.getText().toString().trim();
+
+        User currentUser = sessionManager.getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        PeriodRecord record = new PeriodRecord();
+        record.setId(editRecordId);
+        record.setUserId(currentUser.getId());
+        record.setStartDate(startDateStr);
+        record.setEndDate(endDateStr);
+        record.setNotes(notes);
+
+        int rows = dbHelper.updatePeriodRecord(record);
+        if (rows > 0) {
+            Toast.makeText(this, "Period record updated!", Toast.LENGTH_SHORT).show();
+            finish();
+        } else {
+            Toast.makeText(this, "Failed to update record", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void confirmDelete() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Period")
+                .setMessage("Are you sure you want to delete this period record?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    int rows = dbHelper.deletePeriodRecord(editRecordId);
+                    if (rows > 0) {
+                        Toast.makeText(this, "Period record deleted", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Failed to delete record", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void updateStartDateDisplay() {

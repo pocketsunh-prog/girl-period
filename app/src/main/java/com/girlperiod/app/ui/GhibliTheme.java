@@ -20,6 +20,23 @@ public final class GhibliTheme {
 
     private static final String PREFS_NAME = "ghibli_theme_prefs";
     private static final String KEY_THEME = "selected_theme";
+    private static final String KEY_CAL_TEXT_COLOR = "cal_text_color";
+    private static final String KEY_CAL_BG_COLOR = "cal_bg_color";
+    private static final String KEY_CAL_STYLE = "cal_style";
+    private static final String KEY_DATE_PICKER_STYLE = "date_picker_style";
+
+    private static final int DEFAULT_CAL_TEXT_COLOR = Color.parseColor("#000000");
+    private static final int DEFAULT_CAL_BG_COLOR = Color.parseColor("#FFFFFF");
+    public static final int CAL_STYLE_DEFAULT = 0;
+    public static final int CAL_STYLE_COMPACT = 1;
+    public static final int CAL_STYLE_ROUNDED = 2;
+    public static final int CAL_STYLE_MINIMAL = 3;
+
+    public static final int DATE_PICKER_STYLE_DEFAULT = 0;
+    public static final int DATE_PICKER_STYLE_PINK = 1;
+    public static final int DATE_PICKER_STYLE_GREEN = 2;
+    public static final int DATE_PICKER_STYLE_BLUE = 3;
+    public static final int DATE_PICKER_STYLE_PURPLE = 4;
 
     /* ------------------------------------------------------------------ */
     /*  Theme enum                                                        */
@@ -224,6 +241,62 @@ public final class GhibliTheme {
             case PEACH:    return R.drawable.cube_girl_peach;
             default:       return R.drawable.cube_girl_sakura;
         }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Calendar text color                                                */
+    /* ------------------------------------------------------------------ */
+
+    public static int getCalendarTextColor(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_CAL_TEXT_COLOR, DEFAULT_CAL_TEXT_COLOR);
+    }
+
+    public static void saveCalendarTextColor(Context context, int color) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_CAL_TEXT_COLOR, color).apply();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Calendar background color                                         */
+    /* ------------------------------------------------------------------ */
+
+    public static int getCalendarBackgroundColor(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_CAL_BG_COLOR, DEFAULT_CAL_BG_COLOR);
+    }
+
+    public static void saveCalendarBackgroundColor(Context context, int color) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_CAL_BG_COLOR, color).apply();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Calendar style                                                     */
+    /* ------------------------------------------------------------------ */
+
+    public static int getCalendarStyle(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_CAL_STYLE, CAL_STYLE_DEFAULT);
+    }
+
+    public static void saveCalendarStyle(Context context, int style) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_CAL_STYLE, style).apply();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  DatePickerDialog style                                             */
+    /* ------------------------------------------------------------------ */
+
+    public static int getDatePickerStyle(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_DATE_PICKER_STYLE, DATE_PICKER_STYLE_DEFAULT);
+    }
+
+    public static void saveDatePickerStyle(Context context, int style) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putInt(KEY_DATE_PICKER_STYLE, style).apply();
     }
 
     private GhibliTheme() {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@color/today_green" />
-    <corners android:radius="8dp" />
-    <stroke android:width="2dp" android:color="@color/ghibli_matcha_accent" />
+    android:shape="oval">
+    <solid android:color="#33388E3C" />
+    <stroke android:width="2dp" android:color="#388E3C" />
+    <size android:width="32dp" android:height="32dp" />
 </shape>
