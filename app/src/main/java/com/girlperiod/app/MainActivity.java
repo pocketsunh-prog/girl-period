@@ -132,6 +132,10 @@ public class MainActivity extends AppCompatActivity {
                 setupCalendar();
                 updateWeatherSummary();
                 return true;
+            } else if (itemId == R.id.nav_events) {
+                Intent intent = new Intent(MainActivity.this, EventListActivity.class);
+                startActivity(intent);
+                return true;
             } else if (itemId == R.id.nav_charts) {
                 Intent intent = new Intent(MainActivity.this, ChartActivity.class);
                 startActivity(intent);
@@ -170,6 +174,14 @@ public class MainActivity extends AppCompatActivity {
     private void loadPeriodRecords() {
         User currentUser = sessionManager.getCurrentUser();
         if (currentUser != null) {
+            // Ensure we have a valid user ID
+            if (currentUser.getId() <= 0) {
+                // Try to reload from database by username
+                User fullUser = dbHelper.getUserByUsername(currentUser.getUsername());
+                if (fullUser != null) {
+                    currentUser = fullUser;
+                }
+            }
             periodRecords = dbHelper.getPeriodRecordsByUser(currentUser.getId());
             events = dbHelper.getEventsByUser(currentUser.getId());
         }

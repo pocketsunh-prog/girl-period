@@ -86,6 +86,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } catch (Exception e) {
             // Ignore errors
         }
+        
+        // Ensure events table exists
+        try {
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_EVENTS + " ("
+                    + COL_EVENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COL_EVENT_USER_ID + " INTEGER, "
+                    + COL_EVENT_TITLE + " TEXT NOT NULL, "
+                    + COL_EVENT_DATE + " TEXT NOT NULL, "
+                    + COL_EVENT_NOTES + " TEXT, "
+                    + COL_EVENT_REMINDER_DAYS + " INTEGER DEFAULT 1, "
+                    + COL_EVENT_CREATED_AT + " TEXT, "
+                    + "FOREIGN KEY(" + COL_EVENT_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COL_USER_ID + ")"
+                    + ")");
+        } catch (Exception e) {
+            // Ignore errors
+        }
+        
         db.close();
     }
 

@@ -26,7 +26,7 @@ public class EventActivity extends AppCompatActivity {
     private ImageButton btnBack;
     private EditText etEventTitle;
     private TextView btnEventDate;
-    private Spinner spinnerReminder;
+    private TextView btnReminder;
     private EditText etEventNotes;
     private TextView btnSave;
     private TextView btnDelete;
@@ -38,6 +38,7 @@ public class EventActivity extends AppCompatActivity {
     private Calendar eventDate;
     private boolean isEditMode = false;
     private long editEventId = -1;
+    private int selectedReminderIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +56,14 @@ public class EventActivity extends AppCompatActivity {
             return;
         }
 
+        // Ensure we have a valid user ID
+        if (currentUser.getId() <= 0) {
+            User fullUser = dbHelper.getUserByUsername(currentUser.getUsername());
+            if (fullUser != null) {
+                currentUser = fullUser;
+            }
+        }
+
         eventDate = Calendar.getInstance();
 
         initViews();
@@ -67,7 +76,7 @@ public class EventActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         etEventTitle = findViewById(R.id.etEventTitle);
         btnEventDate = findViewById(R.id.btnEventDate);
-        spinnerReminder = findViewById(R.id.spinnerReminder);
+        btnReminder = findViewById(R.id.btnReminder);
         etEventNotes = findViewById(R.id.etEventNotes);
         btnSave = findViewById(R.id.btnSave);
         btnDelete = findViewById(R.id.btnDelete);
@@ -82,10 +91,19 @@ public class EventActivity extends AppCompatActivity {
     }
 
     private void setupReminderSpinner() {
+        // Use button-based selector instead of Spinner for better visibility
         String[] reminders = {"1 day before", "2 days before", "3 days before", "1 week before"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, reminders);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerReminder.setAdapter(adapter);
+        String currentReminder = reminders[0];
+        btnReminder.setText(currentReminder);
+        btnReminder.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Select Reminder")
+                    .setItems(reminders, (dialog, which) -> {
+                        selectedReminderIndex = which;
+                        btnReminder.setText(reminders[which]);
+                    })
+                    .show();
+        });
     }
 
     private void checkEditMode() {
@@ -117,7 +135,9 @@ public class EventActivity extends AppCompatActivity {
                     // Set reminder
                     int reminder = event.getReminderDays();
                     if (reminder >= 1 && reminder <= 4) {
-                        spinnerReminder.setSelection(reminder - 1);
+                        selectedReminderIndex = reminder - 1;
+                        String[] reminders = {"1 day before", "2 days before", "3 days before", "1 week before"};
+                        btnReminder.setText(reminders[selectedReminderIndex]);
                     }
                     break;
                 }
@@ -151,7 +171,7 @@ public class EventActivity extends AppCompatActivity {
     private void saveEvent() {
         String title = etEventTitle.getText().toString().trim();
         String notes = etEventNotes.getText().toString().trim();
-        int reminderDays = spinnerReminder.getSelectedItemPosition() + 1;
+        int reminderDays = selectedReminderIndex + 1;
 
         if (title.isEmpty()) {
             Toast.makeText(this, "Please enter event title", Toast.LENGTH_SHORT).show();

@@ -158,12 +158,22 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
-                    <Spinner
-                        android:id="@+id/spinnerReminder"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnReminder"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="52dp"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_rounded_edittext" />
+                        android:gravity="start|center_vertical"
+                        android:text="1 day before"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        app:cornerRadius="12dp"
+                        app:icon="@drawable/ic_notification"
+                        app:iconGravity="textStart"
+                        app:iconTint="@color/primary_pink"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

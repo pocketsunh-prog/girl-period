@@ -79,6 +79,12 @@
             android:exported="false"
             android:theme="@style/Theme.GirlPeriod" />
 
+        <!-- Event List Activity -->
+        <activity
+            android:name=".EventListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.GirlPeriod" />
+
         <!-- Period Notification Service -->
         <service
             android:name=".PeriodNotificationService"

@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_calendar"
         android:title="Calendar" />
     <item
+        android:id="@+id/nav_events"
+        android:icon="@drawable/ic_notification"
+        android:title="Events" />
+    <item
         android:id="@+id/nav_charts"
         android:icon="@drawable/ic_chart"
         android:title="Charts" />
