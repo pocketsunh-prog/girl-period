@@ -34,16 +34,19 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageButton btnBack;
     private ImageButton btnChangeImage;
     private TextView tvUsername;
+    private TextView tvLocation;
     private TextView btnDob;
     private EditText etCurrentPassword;
     private EditText etNewPassword;
     private EditText etConfirmPassword;
     private TextView btnUpdatePassword;
     private TextView btnResetPassword;
+    private TextView btnUpdateLocation;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
     private User currentUser;
+    private LocationHelper locationHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,12 +73,14 @@ public class ProfileActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnChangeImage = findViewById(R.id.btnChangeImage);
         tvUsername = findViewById(R.id.tvUsername);
+        tvLocation = findViewById(R.id.tvLocation);
         btnDob = findViewById(R.id.btnDob);
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         btnUpdatePassword = findViewById(R.id.btnUpdatePassword);
         btnResetPassword = findViewById(R.id.btnResetPassword);
+        btnUpdateLocation = findViewById(R.id.btnUpdateLocation);
 
         btnBack.setOnClickListener(v -> finish());
 
@@ -86,13 +91,28 @@ public class ProfileActivity extends AppCompatActivity {
         btnUpdatePassword.setOnClickListener(v -> updatePassword());
 
         btnResetPassword.setOnClickListener(v -> resetPassword());
+
+        btnUpdateLocation.setOnClickListener(v -> updateLocation());
+
+        locationHelper = new LocationHelper(this);
     }
 
     private void loadUserData() {
         // Load full user data from database
         User fullUser = dbHelper.getUserById(currentUser.getId());
+        if (fullUser == null) {
+            // Try to get by username
+            fullUser = dbHelper.getUserByUsername(currentUser.getUsername());
+        }
+        
         if (fullUser != null) {
             currentUser = fullUser;
+        } else {
+            // User not found in database, prompt to log in again
+            Toast.makeText(this, "User not found. Please log in again.", Toast.LENGTH_LONG).show();
+            sessionManager.logout();
+            finish();
+            return;
         }
 
         tvUsername.setText(currentUser.getUsername());
@@ -101,6 +121,9 @@ public class ProfileActivity extends AppCompatActivity {
         if (currentUser.getDob() != null && !currentUser.getDob().isEmpty()) {
             btnDob.setText(currentUser.getDob());
         }
+
+        // Load location
+        updateLocationDisplay();
 
         // Load profile image
         if (currentUser.getProfileImage() != null && !currentUser.getProfileImage().isEmpty()) {
@@ -112,6 +135,80 @@ public class ProfileActivity extends AppCompatActivity {
             } catch (Exception e) {
                 // Use default image
             }
+        }
+    }
+
+    private void updateLocationDisplay() {
+        if (currentUser.getCityName() != null && !currentUser.getCityName().isEmpty()) {
+            tvLocation.setText(currentUser.getCityName());
+        } else if (currentUser.getLatitude() != 0 || currentUser.getLongitude() != 0) {
+            tvLocation.setText(String.format("%.4f, %.4f", currentUser.getLatitude(), currentUser.getLongitude()));
+        } else {
+            tvLocation.setText("Tap to set location");
+        }
+    }
+
+    private void updateLocation() {
+        if (!locationHelper.hasLocationPermission()) {
+            Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Try to get last known location first
+        android.location.Location lastLocation = locationHelper.getLastKnownLocation();
+        if (lastLocation != null) {
+            String cityName = locationHelper.getCityName(lastLocation.getLatitude(), lastLocation.getLongitude());
+            saveLocation(lastLocation.getLatitude(), lastLocation.getLongitude(), cityName);
+            return;
+        }
+
+        // Request fresh location
+        Toast.makeText(this, "Getting your location...", Toast.LENGTH_SHORT).show();
+        locationHelper.requestSingleLocationUpdate(new LocationHelper.OnLocationListener() {
+            @Override
+            public void onLocationResult(double latitude, double longitude, String cityName) {
+                saveLocation(latitude, longitude, cityName);
+            }
+
+            @Override
+            public void onLocationError(String error) {
+                Toast.makeText(ProfileActivity.this, "Location error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveLocation(double latitude, double longitude, String cityName) {
+        // Use provided cityName or get from geocoder
+        if (cityName == null || cityName.isEmpty() || "Unknown".equals(cityName)) {
+            cityName = locationHelper.getCityName(latitude, longitude);
+        }
+        
+        // Ensure we have a valid user ID
+        long userId = currentUser.getId();
+        if (userId <= 0) {
+            // Try to reload user data from database
+            User fullUser = dbHelper.getUserByUsername(currentUser.getUsername());
+            if (fullUser != null) {
+                userId = fullUser.getId();
+                currentUser = fullUser;
+            }
+        }
+        
+        if (userId <= 0) {
+            Toast.makeText(this, "Error: Invalid user ID. Please log in again.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        int rows = dbHelper.updateUserLocation(userId, latitude, longitude, cityName);
+        
+        if (rows > 0) {
+            currentUser.setLatitude(latitude);
+            currentUser.setLongitude(longitude);
+            currentUser.setCityName(cityName);
+            updateLocationDisplay();
+            Toast.makeText(this, "Location saved: " + cityName, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Failed to save location (0 rows updated)", Toast.LENGTH_SHORT).show();
         }
     }
 

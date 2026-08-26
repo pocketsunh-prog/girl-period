@@ -127,13 +127,24 @@ public class HkoWeatherService {
             URL url = new URL(urlString);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(15000);
             connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("User-Agent", "GirlPeriod-App/1.0");
 
             int responseCode = connection.getResponseCode();
+            Log.d(TAG, "HTTP Response Code: " + responseCode + " for URL: " + urlString);
+            
             if (responseCode != 200) {
-                throw new Exception("HTTP error code: " + responseCode);
+                // Read error response
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                StringBuilder errorResponse = new StringBuilder();
+                String line;
+                while ((line = errorReader.readLine()) != null) {
+                    errorResponse.append(line);
+                }
+                errorReader.close();
+                throw new Exception("HTTP " + responseCode + ": " + errorResponse.toString());
             }
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -144,7 +155,11 @@ public class HkoWeatherService {
             }
             reader.close();
 
+            Log.d(TAG, "Response length: " + response.length() + " chars");
             return response.toString();
+        } catch (Exception e) {
+            Log.e(TAG, "HTTP Request failed: " + e.getMessage(), e);
+            throw e;
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -153,89 +168,123 @@ public class HkoWeatherService {
     }
 
     /**
-     * Parse current weather JSON response.
+     * Parse current weather JSON response - robust parsing with fallbacks.
      */
     private WeatherData parseCurrentWeather(String json) throws Exception {
         WeatherData data = new WeatherData();
-        JSONObject root = new JSONObject(json);
+        try {
+            JSONObject root = new JSONObject(json);
+            Log.d(TAG, "Parsing JSON, keys: " + root.length());
 
-        // Parse temperature
-        if (root.has("temperature")) {
-            JSONArray tempArray = root.getJSONArray("temperature");
-            if (tempArray.length() > 0) {
-                // Get first station's temperature (Hong Kong Observatory)
-                for (int i = 0; i < tempArray.length(); i++) {
-                    JSONObject station = tempArray.getJSONObject(i);
-                    if (station.optString("place").contains("King's Park") || station.optString("place").contains("Hong Kong")) {
-                        data.temperature = station.optDouble("value", 24.0);
-                        break;
-                    }
-                }
-                if (data.temperature == 0) {
-                    data.temperature = tempArray.getJSONObject(0).optDouble("value", 24.0);
-                }
-            }
-        }
-
-        // Parse humidity
-        if (root.has("humidity")) {
-            JSONArray humidityArray = root.getJSONArray("humidity");
-            if (humidityArray.length() > 0) {
-                data.humidity = humidityArray.getJSONObject(0).optInt("value", 65);
-            }
-        }
-
-        // Parse rainfall
-        if (root.has("rainfall")) {
-            JSONArray rainfallArray = root.getJSONArray("rainfall");
-            if (rainfallArray.length() > 0) {
-                data.rainfall = rainfallArray.getJSONObject(0).optDouble("max", 0.0);
-                if (data.rainfall == 0) {
-                    // Try to get any rainfall value
-                    for (int i = 0; i < rainfallArray.length(); i++) {
-                        double val = rainfallArray.getJSONObject(i).optDouble("max", 0.0);
-                        if (val > 0) {
-                            data.rainfall = val;
-                            break;
+            // Parse temperature - handle both array and object formats
+            if (root.has("temperature")) {
+                Object tempObj = root.get("temperature");
+                if (tempObj instanceof JSONArray) {
+                    JSONArray tempArray = (JSONArray) tempObj;
+                    if (tempArray.length() > 0) {
+                        // Try to find a valid temperature value
+                        for (int i = 0; i < tempArray.length(); i++) {
+                            JSONObject station = tempArray.getJSONObject(i);
+                            double val = station.optDouble("value", Double.NaN);
+                            if (!Double.isNaN(val) && val != 0) {
+                                data.temperature = val;
+                                break;
+                            }
+                        }
+                        if (Double.isNaN(data.temperature) || data.temperature == 0) {
+                            data.temperature = tempArray.getJSONObject(0).optDouble("value", 24.0);
                         }
                     }
+                } else if (tempObj instanceof JSONObject) {
+                    data.temperature = ((JSONObject) tempObj).optDouble("value", 24.0);
                 }
             }
-        }
 
-        // Parse wind
-        if (root.has("wind")) {
-            JSONArray windArray = root.getJSONArray("wind");
-            if (windArray.length() > 0) {
-                data.windSpeed = windArray.getJSONObject(0).optDouble("speed", 10.0);
-                data.windDirection = windArray.getJSONObject(0).optString("direction", "NE");
-            }
-        }
-
-        // Parse icon/weather condition
-        if (root.has("icon")) {
-            JSONArray iconArray = root.getJSONArray("icon");
-            if (iconArray.length() > 0) {
-                int iconCode = iconArray.optInt(0, 50);
-                data.iconCode = String.valueOf(iconCode);
-                data.description = getWeatherDescription(iconCode);
-            }
-        }
-
-        // Parse UV index (may be in a separate field or null)
-        if (root.has("uvindex")) {
-            try {
-                JSONArray uvArray = root.getJSONArray("uvindex");
-                if (uvArray.length() > 0) {
-                    data.uvIndex = uvArray.getJSONObject(0).optInt("value", 5);
+            // Parse humidity
+            if (root.has("humidity")) {
+                Object humObj = root.get("humidity");
+                if (humObj instanceof JSONArray) {
+                    JSONArray humArray = (JSONArray) humObj;
+                    if (humArray.length() > 0) {
+                        data.humidity = humArray.getJSONObject(0).optInt("value", 65);
+                    }
+                } else if (humObj instanceof JSONObject) {
+                    data.humidity = ((JSONObject) humObj).optInt("value", 65);
                 }
-            } catch (Exception e) {
+            }
+
+            // Parse rainfall
+            if (root.has("rainfall")) {
+                Object rainObj = root.get("rainfall");
+                if (rainObj instanceof JSONArray) {
+                    JSONArray rainArray = (JSONArray) rainObj;
+                    if (rainArray.length() > 0) {
+                        // Try "max" first, then "min", then "value"
+                        JSONObject first = rainArray.getJSONObject(0);
+                        data.rainfall = first.optDouble("max", first.optDouble("min", first.optDouble("value", 0.0)));
+                    }
+                } else if (rainObj instanceof JSONObject) {
+                    JSONObject rain = (JSONObject) rainObj;
+                    data.rainfall = rain.optDouble("max", rain.optDouble("value", 0.0));
+                }
+            }
+
+            // Parse wind
+            if (root.has("wind")) {
+                Object windObj = root.get("wind");
+                if (windObj instanceof JSONArray) {
+                    JSONArray windArray = (JSONArray) windObj;
+                    if (windArray.length() > 0) {
+                        JSONObject first = windArray.getJSONObject(0);
+                        data.windSpeed = first.optDouble("speed", 10.0);
+                        data.windDirection = first.optString("direction", "NE");
+                    }
+                } else if (windObj instanceof JSONObject) {
+                    JSONObject wind = (JSONObject) windObj;
+                    data.windSpeed = wind.optDouble("speed", 10.0);
+                    data.windDirection = wind.optString("direction", "NE");
+                }
+            }
+
+            // Parse icon/weather condition
+            if (root.has("icon")) {
+                Object iconObj = root.get("icon");
+                if (iconObj instanceof JSONArray) {
+                    JSONArray iconArray = (JSONArray) iconObj;
+                    if (iconArray.length() > 0) {
+                        int iconCode = iconArray.optInt(0, 50);
+                        data.iconCode = String.valueOf(iconCode);
+                        data.description = getWeatherDescription(iconCode);
+                    }
+                }
+            }
+
+            // Parse UV index - may not be in current weather response
+            if (root.has("uvindex")) {
+                try {
+                    Object uvObj = root.get("uvindex");
+                    if (uvObj instanceof JSONArray) {
+                        JSONArray uvArray = (JSONArray) uvObj;
+                        if (uvArray.length() > 0) {
+                            data.uvIndex = uvArray.getJSONObject(0).optInt("value", 5);
+                        }
+                    } else if (uvObj instanceof JSONObject) {
+                        data.uvIndex = ((JSONObject) uvObj).optInt("value", 5);
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "UV index parse error: " + e.getMessage());
+                    data.uvIndex = 5;
+                }
+            } else {
                 data.uvIndex = 5; // Default
             }
-        } else {
-            data.uvIndex = 5; // Default
-        }
 
+            Log.d(TAG, "Parsed weather: temp=" + data.temperature + ", hum=" + data.humidity + ", rain=" + data.rainfall + ", wind=" + data.windSpeed);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "JSON parse error: " + e.getMessage() + "\nRaw JSON snippet: " + json.substring(0, Math.min(json.length(), 300)));
+            throw new Exception("Failed to parse weather data: " + e.getMessage());
+        }
         return data;
     }
 

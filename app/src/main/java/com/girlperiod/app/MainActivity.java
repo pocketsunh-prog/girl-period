@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private GridLayout gridCalendar;
     private TextView tvMonthYear;
+    private TextView tvLocation;
     private TextView tvTemperature;
     private TextView tvUV;
     private TextView tvHumidity;
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.tvHumidity);
         tvRainfall = findViewById(R.id.tvRainfall);
         tvWind = findViewById(R.id.tvWind);
+        tvLocation = findViewById(R.id.tvLocation);
 
         findViewById(R.id.btnRefreshWeather).setOnClickListener(v -> {
             PermissionHelper permissionHelper = new PermissionHelper(this);
@@ -522,22 +524,79 @@ public class MainActivity extends AppCompatActivity {
         tvRainfall.setText("--mm");
         tvWind.setText("--km/h");
 
+        // Update location display from saved user data
+        updateLocationDisplay();
+
         // Fetch real weather data from HKO API
-        WeatherService.fetchRealWeatherData(this, new WeatherService.OnRealWeatherListener() {
+        HkoWeatherService hkoService = new HkoWeatherService(this);
+
+        if (!hkoService.isNetworkAvailable()) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            // Use mock data
+            WeatherService.WeatherData mockData = WeatherService.getCurrentWeather("Hong Kong");
+            updateWeatherUI(mockData);
+            return;
+        }
+
+        hkoService.fetchCurrentWeather(new HkoWeatherService.OnWeatherDataListener() {
             @Override
-            public void onWeatherReady(WeatherService.WeatherData current, java.util.List<WeatherService.WeatherData> forecast) {
-                if (current != null) {
-                    tvTemperature.setText(String.format(Locale.getDefault(), "%.0f°C", current.getTemperature()));
-                    tvUV.setText("UV " + current.getUvIndex());
-                    tvHumidity.setText(current.getHumidity() + "%");
-                    tvRainfall.setText(String.format(Locale.getDefault(), "%.1fmm", current.getRainfall()));
-                    tvWind.setText(String.format(Locale.getDefault(), "%.0fkm/h", current.getWindSpeed()));
-                    Toast.makeText(MainActivity.this, "Weather updated!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "Failed to update weather", Toast.LENGTH_SHORT).show();
-                }
+            public void onSuccess(HkoWeatherService.WeatherData hkoData) {
+                WeatherService.WeatherData data = new WeatherService.WeatherData();
+                data.setTemperature(hkoData.temperature);
+                data.setHumidity(hkoData.humidity);
+                data.setRainfall(hkoData.rainfall);
+                data.setWindSpeed(hkoData.windSpeed);
+                data.setWindDirection(hkoData.windDirection);
+                data.setUvIndex(hkoData.uvIndex);
+                data.setIconCode(hkoData.iconCode);
+                data.setDescription(hkoData.description);
+                updateWeatherUI(data);
+                Toast.makeText(MainActivity.this, "Weather updated!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this, "Weather error: " + error, Toast.LENGTH_SHORT).show();
+                // Fallback to mock data
+                WeatherService.WeatherData mockData = WeatherService.getCurrentWeather("Hong Kong");
+                updateWeatherUI(mockData);
             }
         });
+    }
+
+    private void updateWeatherUI(WeatherService.WeatherData data) {
+        if (data != null) {
+            tvTemperature.setText(String.format(Locale.getDefault(), "%.0f°C", data.getTemperature()));
+            tvUV.setText("UV " + data.getUvIndex());
+            tvHumidity.setText(data.getHumidity() + "%");
+            tvRainfall.setText(String.format(Locale.getDefault(), "%.1fmm", data.getRainfall()));
+            tvWind.setText(String.format(Locale.getDefault(), "%.0fkm/h", data.getWindSpeed()));
+        }
+    }
+
+    private void updateLocationDisplay() {
+        if (sessionManager != null && sessionManager.isLoggedIn()) {
+            User sessionUser = sessionManager.getCurrentUser();
+            if (sessionUser != null) {
+                // Get full user data from database
+                User fullUser = dbHelper.getUserById(sessionUser.getId());
+                if (fullUser == null) {
+                    // Try to get by username
+                    fullUser = dbHelper.getUserByUsername(sessionUser.getUsername());
+                }
+                if (fullUser != null && fullUser.getCityName() != null && !fullUser.getCityName().isEmpty()) {
+                    tvLocation.setText(fullUser.getCityName());
+                } else if (fullUser != null && (fullUser.getLatitude() != 0 || fullUser.getLongitude() != 0)) {
+                    tvLocation.setText(String.format("%.4f, %.4f", fullUser.getLatitude(), fullUser.getLongitude()));
+                } else {
+                    tvLocation.setText("Set location");
+                }
+            } else {
+                tvLocation.setText("Set location");
+            }
+        } else {
+            tvLocation.setText("Set location");
+        }
     }
 
     private boolean isSameDay(Calendar cal1, Calendar cal2) {

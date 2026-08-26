@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "girlperiod.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Table: users
     private static final String TABLE_USERS = "users";
@@ -23,6 +23,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COL_CREATED_AT = "created_at";
     private static final String COL_DOB = "dob";
     private static final String COL_PROFILE_IMAGE = "profile_image";
+    private static final String COL_LATITUDE = "latitude";
+    private static final String COL_LONGITUDE = "longitude";
+    private static final String COL_CITY_NAME = "city_name";
 
     // Table: period_records
     private static final String TABLE_PERIOD_RECORDS = "period_records";
@@ -45,6 +48,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        ensureLocationColumnsExist();
+    }
+
+    /**
+     * Ensure location columns exist in the users table.
+     * This is a safety check for existing databases.
+     */
+    private void ensureLocationColumnsExist() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            // Check if latitude column exists
+            android.database.Cursor cursor = db.rawQuery("PRAGMA table_info(" + TABLE_USERS + ")", null);
+            boolean hasLatitude = false;
+            boolean hasLongitude = false;
+            boolean hasCityName = false;
+            if (cursor.moveToFirst()) {
+                do {
+                    String columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                    if (COL_LATITUDE.equals(columnName)) hasLatitude = true;
+                    if (COL_LONGITUDE.equals(columnName)) hasLongitude = true;
+                    if (COL_CITY_NAME.equals(columnName)) hasCityName = true;
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+
+            // Add missing columns
+            if (!hasLatitude) {
+                db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_LATITUDE + " REAL DEFAULT 0");
+            }
+            if (!hasLongitude) {
+                db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_LONGITUDE + " REAL DEFAULT 0");
+            }
+            if (!hasCityName) {
+                db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_CITY_NAME + " TEXT");
+            }
+        } catch (Exception e) {
+            // Ignore errors
+        }
+        db.close();
     }
 
     @Override
@@ -56,6 +98,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COL_FINGERPRINT_ENABLED + " INTEGER DEFAULT 0, "
                 + COL_DOB + " TEXT, "
                 + COL_PROFILE_IMAGE + " TEXT, "
+                + COL_LATITUDE + " REAL DEFAULT 0, "
+                + COL_LONGITUDE + " REAL DEFAULT 0, "
+                + COL_CITY_NAME + " TEXT, "
                 + COL_CREATED_AT + " TEXT"
                 + ")";
         db.execSQL(createUsersTable);
@@ -86,10 +131,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EVENTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PERIOD_RECORDS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        onCreate(db);
+        // Upgrade from version 1 to 2: add location columns and events table
+        if (oldVersion < 2) {
+            // Add location columns to users table if they don't exist
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_LATITUDE + " REAL DEFAULT 0");
+            } catch (Exception e) {
+                // Column may already exist
+            }
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_LONGITUDE + " REAL DEFAULT 0");
+            } catch (Exception e) {
+                // Column may already exist
+            }
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_CITY_NAME + " TEXT");
+            } catch (Exception e) {
+                // Column may already exist
+            }
+            
+            // Create events table
+            String createEventsTable = "CREATE TABLE IF NOT EXISTS " + TABLE_EVENTS + " ("
+                    + COL_EVENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + COL_EVENT_USER_ID + " INTEGER, "
+                    + COL_EVENT_TITLE + " TEXT NOT NULL, "
+                    + COL_EVENT_DATE + " TEXT NOT NULL, "
+                    + COL_EVENT_NOTES + " TEXT, "
+                    + COL_EVENT_REMINDER_DAYS + " INTEGER DEFAULT 1, "
+                    + COL_EVENT_CREATED_AT + " TEXT, "
+                    + "FOREIGN KEY(" + COL_EVENT_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COL_USER_ID + ")"
+                    + ")";
+            db.execSQL(createEventsTable);
+        }
     }
 
     // --- User methods ---
@@ -211,6 +284,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (imgIndex >= 0 && !cursor.isNull(imgIndex)) {
             user.setProfileImage(cursor.getString(imgIndex));
         }
+        int latIndex = cursor.getColumnIndex(COL_LATITUDE);
+        if (latIndex >= 0) {
+            user.setLatitude(cursor.getDouble(latIndex));
+        }
+        int lngIndex = cursor.getColumnIndex(COL_LONGITUDE);
+        if (lngIndex >= 0) {
+            user.setLongitude(cursor.getDouble(lngIndex));
+        }
+        int cityIndex = cursor.getColumnIndex(COL_CITY_NAME);
+        if (cityIndex >= 0 && !cursor.isNull(cityIndex)) {
+            user.setCityName(cursor.getString(cityIndex));
+        }
         return user;
     }
 
@@ -240,6 +325,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_PROFILE_IMAGE, imagePath);
+        int rows = db.update(TABLE_USERS, values, COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)});
+        db.close();
+        return rows;
+    }
+
+    public int updateUserLocation(long userId, double latitude, double longitude, String cityName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_LATITUDE, latitude);
+        values.put(COL_LONGITUDE, longitude);
+        values.put(COL_CITY_NAME, cityName);
         int rows = db.update(TABLE_USERS, values, COL_USER_ID + " = ?",
                 new String[]{String.valueOf(userId)});
         db.close();

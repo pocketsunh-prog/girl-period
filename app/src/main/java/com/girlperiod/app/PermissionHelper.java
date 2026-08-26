@@ -63,6 +63,16 @@ public class PermissionHelper {
     }
 
     /**
+     * Check location permission.
+     */
+    public boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
      * Show the permission explanation dialog.
      */
     public void showPermissionDialog() {
@@ -102,6 +112,12 @@ public class PermissionHelper {
             } else {
                 permissions.add(Manifest.permission.USE_FINGERPRINT);
             }
+        }
+
+        // Location
+        if (!hasLocationPermission()) {
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         }
 
         // Notifications (Android 13+)
