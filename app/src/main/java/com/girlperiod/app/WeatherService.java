@@ -122,6 +122,64 @@ public final class WeatherService {
     }
 
     /**
+     * Fetch real weather data from HKO API with mock fallback.
+     * Call this from UI thread - it handles async internally.
+     */
+    public static void fetchRealWeatherData(android.content.Context context, OnRealWeatherListener listener) {
+        HkoWeatherService hkoService = new HkoWeatherService(context);
+
+        if (!hkoService.isNetworkAvailable()) {
+            // Return mock data when offline
+            listener.onWeatherReady(getCurrentWeather("Hong Kong"), getForecastData());
+            return;
+        }
+
+        // Fetch real data from HKO API
+        hkoService.fetchCurrentWeather(new HkoWeatherService.OnWeatherDataListener() {
+            @Override
+            public void onSuccess(HkoWeatherService.WeatherData hkoData) {
+                WeatherData data = new WeatherData();
+                data.setTemperature(hkoData.temperature);
+                data.setHumidity(hkoData.humidity);
+                data.setRainfall(hkoData.rainfall);
+                data.setWindSpeed(hkoData.windSpeed);
+                data.setWindDirection(hkoData.windDirection);
+                data.setUvIndex(hkoData.uvIndex);
+                data.setIconCode(hkoData.iconCode);
+                data.setDescription(hkoData.description);
+                listener.onWeatherReady(data, getForecastData());
+            }
+
+            @Override
+            public void onError(String error) {
+                // Fallback to mock data on error
+                listener.onWeatherReady(getCurrentWeather("Hong Kong"), getForecastData());
+            }
+        });
+    }
+
+    /**
+     * Get forecast data (mock for now, can be enhanced with real API).
+     */
+    private static java.util.List<WeatherData> getForecastData() {
+        java.util.List<WeatherData> forecast = new java.util.ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        for (int i = 0; i < 7; i++) {
+            Calendar day = (Calendar) cal.clone();
+            day.add(Calendar.DAY_OF_MONTH, i);
+            forecast.add(generateWeatherData("Hong Kong", day.getTime()));
+        }
+        return forecast;
+    }
+
+    /**
+     * Listener for real weather data callback.
+     */
+    public interface OnRealWeatherListener {
+        void onWeatherReady(WeatherData current, java.util.List<WeatherData> forecast);
+    }
+
+    /**
      * Maps a weather code to a description string.
      *
      * @param code the weather condition code
@@ -344,12 +402,17 @@ public final class WeatherService {
      * Data class holding weather information.
      */
     public static final class WeatherData {
-        private final double temperature;
-        private final int uvIndex;
-        private final int humidity;
-        private final double rainfall;
-        private final String description;
-        private final String iconCode;
+        private double temperature;
+        private int uvIndex;
+        private int humidity;
+        private double rainfall;
+        private String description;
+        private String iconCode;
+        private double windSpeed;
+        private String windDirection;
+
+        public WeatherData() {
+        }
 
         public WeatherData(double temperature, int uvIndex, int humidity,
                            double rainfall, String description, String iconCode) {
@@ -365,24 +428,64 @@ public final class WeatherService {
             return temperature;
         }
 
+        public void setTemperature(double temperature) {
+            this.temperature = temperature;
+        }
+
         public int getUvIndex() {
             return uvIndex;
+        }
+
+        public void setUvIndex(int uvIndex) {
+            this.uvIndex = uvIndex;
         }
 
         public int getHumidity() {
             return humidity;
         }
 
+        public void setHumidity(int humidity) {
+            this.humidity = humidity;
+        }
+
         public double getRainfall() {
             return rainfall;
+        }
+
+        public void setRainfall(double rainfall) {
+            this.rainfall = rainfall;
         }
 
         public String getDescription() {
             return description;
         }
 
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
         public String getIconCode() {
             return iconCode;
+        }
+
+        public void setIconCode(String iconCode) {
+            this.iconCode = iconCode;
+        }
+
+        public double getWindSpeed() {
+            return windSpeed;
+        }
+
+        public void setWindSpeed(double windSpeed) {
+            this.windSpeed = windSpeed;
+        }
+
+        public String getWindDirection() {
+            return windDirection;
+        }
+
+        public void setWindDirection(String windDirection) {
+            this.windDirection = windDirection;
         }
 
         @Override
@@ -392,7 +495,8 @@ public final class WeatherService {
                 "°C, uvIndex=" + uvIndex +
                 ", humidity=" + humidity +
                 "%, rainfall=" + String.format("%.1f", rainfall) +
-                "mm, description='" + description + '\'' +
+                "mm, windSpeed=" + String.format("%.1f", windSpeed) +
+                "km/h, description='" + description + '\'' +
                 ", iconCode='" + iconCode + '\'' +
                 '}';
         }

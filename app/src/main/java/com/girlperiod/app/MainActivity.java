@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvUV;
     private TextView tvHumidity;
     private TextView tvRainfall;
+    private TextView tvWind;
 
     private Calendar currentMonth;
     private DatabaseHelper dbHelper;
@@ -81,6 +82,18 @@ public class MainActivity extends AppCompatActivity {
         tvUV = findViewById(R.id.tvUV);
         tvHumidity = findViewById(R.id.tvHumidity);
         tvRainfall = findViewById(R.id.tvRainfall);
+        tvWind = findViewById(R.id.tvWind);
+
+        findViewById(R.id.btnRefreshWeather).setOnClickListener(v -> {
+            PermissionHelper permissionHelper = new PermissionHelper(this);
+            if (permissionHelper.hasInternetPermission()) {
+                // Animate refresh button
+                v.animate().rotationBy(360f).setDuration(1000).start();
+                updateWeatherSummary();
+            } else {
+                permissionHelper.requestPermissions();
+            }
+        });
 
         findViewById(R.id.btnPrevMonth).setOnClickListener(v -> {
             currentMonth.add(Calendar.MONTH, -1);
@@ -502,14 +515,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateWeatherSummary() {
-        Calendar cal = Calendar.getInstance();
-        WeatherService.WeatherData weather = WeatherService.getCurrentWeather("上海");
-        if (weather != null) {
-            tvTemperature.setText(String.format(Locale.getDefault(), "%.0f°C", weather.getTemperature()));
-            tvUV.setText("UV " + weather.getUvIndex());
-            tvHumidity.setText(weather.getHumidity() + "%");
-            tvRainfall.setText(String.format(Locale.getDefault(), "%.1fmm", weather.getRainfall()));
-        }
+        // Show loading state
+        tvTemperature.setText("--°C");
+        tvUV.setText("UV --");
+        tvHumidity.setText("--%");
+        tvRainfall.setText("--mm");
+        tvWind.setText("--km/h");
+
+        // Fetch real weather data from HKO API
+        WeatherService.fetchRealWeatherData(this, new WeatherService.OnRealWeatherListener() {
+            @Override
+            public void onWeatherReady(WeatherService.WeatherData current, java.util.List<WeatherService.WeatherData> forecast) {
+                if (current != null) {
+                    tvTemperature.setText(String.format(Locale.getDefault(), "%.0f°C", current.getTemperature()));
+                    tvUV.setText("UV " + current.getUvIndex());
+                    tvHumidity.setText(current.getHumidity() + "%");
+                    tvRainfall.setText(String.format(Locale.getDefault(), "%.1fmm", current.getRainfall()));
+                    tvWind.setText(String.format(Locale.getDefault(), "%.0fkm/h", current.getWindSpeed()));
+                    Toast.makeText(MainActivity.this, "Weather updated!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to update weather", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private boolean isSameDay(Calendar cal1, Calendar cal2) {
@@ -592,6 +620,17 @@ public class MainActivity extends AppCompatActivity {
                 return R.drawable.ic_weather_rain;
             default:
                 return R.drawable.ic_weather_sun;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionHelper permissionHelper = new PermissionHelper(this);
+        permissionHelper.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // If permissions granted, refresh weather
+        if (requestCode == PermissionHelper.PERMISSION_REQUEST_CODE && permissionHelper.hasInternetPermission()) {
+            updateWeatherSummary();
         }
     }
 }

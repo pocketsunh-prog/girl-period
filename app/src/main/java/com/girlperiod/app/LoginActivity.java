@@ -44,6 +44,12 @@ public class LoginActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
         sessionManager = new SessionManager(this);
 
+        // Show permission dialog on first launch
+        PermissionHelper permissionHelper = new PermissionHelper(this);
+        if (!permissionHelper.hasAllPermissions()) {
+            permissionHelper.showPermissionDialog();
+        }
+
         // If already logged in, skip straight to MainActivity
         if (sessionManager.isLoggedIn()) {
             navigateToMain();
@@ -182,5 +188,12 @@ public class LoginActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionHelper permissionHelper = new PermissionHelper(this);
+        permissionHelper.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
