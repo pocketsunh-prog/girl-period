@@ -17,6 +17,21 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.girlperiod.app.data.DatabaseHelper;
+import com.girlperiod.app.data.Event;
+import com.girlperiod.app.data.User;
+import com.girlperiod.app.ui.GhibliDatePickerDialog;
+import com.girlperiod.app.ui.GhibliTheme;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.Calendar;
+import java.util.List;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.girlperiod.app.data.DatabaseHelper;
 import com.girlperiod.app.data.User;
 import com.girlperiod.app.ui.GhibliDatePickerDialog;
 import com.girlperiod.app.ui.GhibliTheme;
@@ -294,7 +309,44 @@ public class ProfileActivity extends AppCompatActivity {
             // Update display
             btnDob.setText(dob);
             Toast.makeText(this, "DOB updated!", Toast.LENGTH_SHORT).show();
+
+            // Auto-create birthday event
+            createBirthdayEvent(date);
         }).show();
+    }
+
+    private void createBirthdayEvent(Calendar dobDate) {
+        // Create birthday event for current year and next year
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        
+        for (int year = currentYear; year <= currentYear + 1; year++) {
+            String birthdayDate = String.format("%04d-%02d-%02d",
+                    year,
+                    dobDate.get(Calendar.MONTH) + 1,
+                    dobDate.get(Calendar.DAY_OF_MONTH));
+
+            // Check if birthday event already exists for this year
+            boolean exists = false;
+            List<Event> existingEvents = dbHelper.getEventsByUser(currentUser.getId());
+            for (Event event : existingEvents) {
+                if (event.getTitle().contains("Birthday") && event.getEventDate().equals(birthdayDate)) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                Event birthdayEvent = new Event();
+                birthdayEvent.setUserId(currentUser.getId());
+                birthdayEvent.setTitle("🎂 Birthday");
+                birthdayEvent.setEventDate(birthdayDate);
+                birthdayEvent.setNotes("Happy Birthday!");
+                birthdayEvent.setReminderDays(1); // 1 day before
+                dbHelper.addEvent(birthdayEvent);
+            }
+        }
+        
+        Toast.makeText(this, "Birthday events created!", Toast.LENGTH_SHORT).show();
     }
 
     private void updatePassword() {

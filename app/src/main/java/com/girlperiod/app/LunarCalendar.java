@@ -69,7 +69,7 @@ public final class LunarCalendar {
 
     static {
         Calendar baseCal = Calendar.getInstance();
-        baseCal.set(BASE_YEAR, 0, 31, 0, 0, 0);
+        baseCal.set(BASE_YEAR, 0, 31, 12, 0, 0); // Use noon to avoid DST issues
         baseCal.set(Calendar.MILLISECOND, 0);
         BASE_DATE_TIMESTAMP = baseCal.getTimeInMillis();
     }
@@ -188,10 +188,11 @@ public final class LunarCalendar {
 
     private static int getDaysBetweenGregorianAndBase(int year, int month, int day) {
         Calendar cal = Calendar.getInstance();
-        cal.set(year, month - 1, day, 0, 0, 0);
+        cal.set(year, month - 1, day, 12, 0, 0); // Use noon to avoid DST issues
         cal.set(Calendar.MILLISECOND, 0);
         long diff = cal.getTimeInMillis() - BASE_DATE_TIMESTAMP;
-        return (int) (diff / (24 * 60 * 60 * 1000));
+        // Round to nearest day to avoid DST issues
+        return (int) Math.round((double) diff / (24 * 60 * 60 * 1000));
     }
 
     private static int getLunarYearDays(int year) {

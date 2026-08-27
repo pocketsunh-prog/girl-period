@@ -71,6 +71,9 @@ public class GhibliDatePickerDialog {
             updateMonthYear();
         });
 
+        // Year selection - click month/year text to pick year
+        tvMonthYear.setOnClickListener(v -> showYearPicker());
+
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
                 .create();
@@ -89,6 +92,27 @@ public class GhibliDatePickerDialog {
     private void updateMonthYear() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
         tvMonthYear.setText(sdf.format(currentMonth.getTime()));
+    }
+
+    private void showYearPicker() {
+        int currentYear = currentMonth.get(Calendar.YEAR);
+        int startYear = currentYear - 50;
+        int endYear = currentYear + 50;
+        int yearsCount = endYear - startYear + 1;
+        final String[] years = new String[yearsCount];
+        for (int i = 0; i < yearsCount; i++) {
+            years[i] = String.valueOf(startYear + i);
+        }
+
+        new AlertDialog.Builder(context)
+                .setTitle("Select Year")
+                .setItems(years, (dialog, which) -> {
+                    int selectedYear = startYear + which;
+                    currentMonth.set(Calendar.YEAR, selectedYear);
+                    adapter.notifyDataSetChanged();
+                    updateMonthYear();
+                })
+                .show();
     }
 
     private List<Integer> getDaysInMonth() {
