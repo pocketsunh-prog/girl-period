@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private GridLayout gridCalendar;
     private TextView tvMonthYear;
     private TextView tvLocation;
+    private TextView tvWeatherDesc;
     private TextView tvTemperature;
     private TextView tvUV;
     private TextView tvHumidity;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private List<PeriodRecord> periodRecords;
     private List<Event> events;
+    private java.util.Map<String, WeatherService.WeatherData> weatherDataMap;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         tvRainfall = findViewById(R.id.tvRainfall);
         tvWind = findViewById(R.id.tvWind);
         tvLocation = findViewById(R.id.tvLocation);
+        tvWeatherDesc = findViewById(R.id.tvWeatherDesc);
 
         findViewById(R.id.btnRefreshWeather).setOnClickListener(v -> {
             PermissionHelper permissionHelper = new PermissionHelper(this);
@@ -233,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tvDayNumber = cellView.findViewById(R.id.tvDayNumber);
         TextView tvLunarDate = cellView.findViewById(R.id.tvLunarDate);
         ImageView ivWeatherIcon = cellView.findViewById(R.id.ivWeatherIcon);
+        TextView tvTemp = cellView.findViewById(R.id.tvTemp);
         View vPeriodHighlight = cellView.findViewById(R.id.vPeriodHighlight);
         ImageView vTodayHighlight = cellView.findViewById(R.id.vTodayHighlight);
         View vEventHighlight = cellView.findViewById(R.id.vEventHighlight);
@@ -272,10 +276,13 @@ public class MainActivity extends AppCompatActivity {
             tvLunarDate.setText(lunar);
         }
 
-        // Weather icon
+        // Weather icon and temperature
         if (weather != null) {
             int iconRes = getWeatherIconResource(weather.getDescription());
             ivWeatherIcon.setImageResource(iconRes);
+            tvTemp.setText(String.format(Locale.getDefault(), "%.0f°", weather.getTemperature()));
+        } else {
+            tvTemp.setText("--");
         }
 
         // Check if this day has events
@@ -536,20 +543,28 @@ public class MainActivity extends AppCompatActivity {
         tvRainfall.setText("--mm");
         tvWind.setText("--km/h");
 
+        // Initialize weather data map
+        if (weatherDataMap == null) {
+            weatherDataMap = new java.util.HashMap<>();
+        } else {
+            weatherDataMap.clear();
+        }
+
         // Update location display from saved user data
         updateLocationDisplay();
 
         // Fetch real weather data from HKO API
-        HkoWeatherService hkoService = new HkoWeatherService(this);
+        final HkoWeatherService hkoService = new HkoWeatherService(this);
 
         if (!hkoService.isNetworkAvailable()) {
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-            // Use mock data
             WeatherService.WeatherData mockData = WeatherService.getCurrentWeather("Hong Kong");
             updateWeatherUI(mockData);
+            setupCalendar();
             return;
         }
 
+        // Fetch current weather
         hkoService.fetchCurrentWeather(new HkoWeatherService.OnWeatherDataListener() {
             @Override
             public void onSuccess(HkoWeatherService.WeatherData hkoData) {
@@ -562,22 +577,53 @@ public class MainActivity extends AppCompatActivity {
                 data.setUvIndex(hkoData.uvIndex);
                 data.setIconCode(hkoData.iconCode);
                 data.setDescription(hkoData.description);
+                
+                // Store in map with today's date as key
+                String todayKey = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                weatherDataMap.put(todayKey, data);
+                
                 updateWeatherUI(data);
                 Toast.makeText(MainActivity.this, "Weather updated!", Toast.LENGTH_SHORT).show();
+                setupCalendar();
             }
 
             @Override
             public void onError(String error) {
                 Toast.makeText(MainActivity.this, "Weather error: " + error, Toast.LENGTH_SHORT).show();
-                // Fallback to mock data
                 WeatherService.WeatherData mockData = WeatherService.getCurrentWeather("Hong Kong");
                 updateWeatherUI(mockData);
+                setupCalendar();
+            }
+        });
+
+        // Fetch weather forecast for upcoming days
+        hkoService.fetchWeatherForecast(new HkoWeatherService.OnForecastListener() {
+            @Override
+            public void onSuccess(HkoWeatherService.ForecastData forecastData) {
+                for (HkoWeatherService.ForecastDay day : forecastData.forecastDays) {
+                    WeatherService.WeatherData data = new WeatherService.WeatherData();
+                    data.setTemperature((day.tempMax + day.tempMin) / 2.0);
+                    data.setHumidity((day.humidityMax + day.humidityMin) / 2);
+                    data.setDescription(day.weather);
+                    data.setRainfall(0);
+                    data.setWindSpeed(10);
+                    data.setUvIndex(5);
+                    data.setIconCode(String.valueOf(day.icon));
+                    weatherDataMap.put(day.date, data);
+                }
+                setupCalendar();
+            }
+
+            @Override
+            public void onError(String error) {
+                // Forecast error is non-critical
             }
         });
     }
 
     private void updateWeatherUI(WeatherService.WeatherData data) {
         if (data != null) {
+            tvWeatherDesc.setText(data.getDescription() != null ? data.getDescription() : "--");
             tvTemperature.setText(String.format(Locale.getDefault(), "%.0f°C", data.getTemperature()));
             tvUV.setText("UV " + data.getUvIndex());
             tvHumidity.setText(data.getHumidity() + "%");
@@ -674,7 +720,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private WeatherService.WeatherData getWeatherForDate(Calendar cal) {
-        return WeatherService.getWeatherForDate("上海", cal.getTime());
+        // Try to get real weather data from map first
+        if (weatherDataMap != null) {
+            String dateKey = String.format("%04d-%02d-%02d",
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.DAY_OF_MONTH));
+            WeatherService.WeatherData realData = weatherDataMap.get(dateKey);
+            if (realData != null) {
+                return realData; // Already the correct type, just return it
+            }
+        }
+        // Fallback to mock data
+        return WeatherService.getWeatherForDate("Hong Kong", cal.getTime());
     }
 
     private int getWeatherIconResource(String description) {

@@ -156,6 +156,8 @@ public class HkoWeatherService {
             reader.close();
 
             Log.d(TAG, "Response length: " + response.length() + " chars");
+            // Log first 500 chars of response for debugging
+            Log.d(TAG, "Raw response: " + response.substring(0, Math.min(response.length(), 500)));
             return response.toString();
         } catch (Exception e) {
             Log.e(TAG, "HTTP Request failed: " + e.getMessage(), e);
@@ -176,56 +178,59 @@ public class HkoWeatherService {
             JSONObject root = new JSONObject(json);
             Log.d(TAG, "Parsing JSON, keys: " + root.length());
 
-            // Parse temperature - handle both array and object formats
+            // Parse temperature - pick King's Park or Hong Kong Observatory
             if (root.has("temperature")) {
                 Object tempObj = root.get("temperature");
                 if (tempObj instanceof JSONArray) {
                     JSONArray tempArray = (JSONArray) tempObj;
-                    if (tempArray.length() > 0) {
-                        // Try to find a valid temperature value
+                    // Try to find King's Park or Hong Kong Observatory first
+                    for (int i = 0; i < tempArray.length(); i++) {
+                        JSONObject station = tempArray.getJSONObject(i);
+                        String place = station.optString("place", "").toLowerCase();
+                        if (place.contains("king") || place.contains("observatory")) {
+                            data.temperature = station.optDouble("value", 28.0);
+                            break;
+                        }
+                    }
+                    // Fallback to first valid temperature in reasonable range
+                    if (data.temperature == 0) {
                         for (int i = 0; i < tempArray.length(); i++) {
                             JSONObject station = tempArray.getJSONObject(i);
-                            double val = station.optDouble("value", Double.NaN);
-                            if (!Double.isNaN(val) && val != 0) {
+                            double val = station.optDouble("value", 0);
+                            if (val > 10 && val < 45) {
                                 data.temperature = val;
                                 break;
                             }
                         }
-                        if (Double.isNaN(data.temperature) || data.temperature == 0) {
-                            data.temperature = tempArray.getJSONObject(0).optDouble("value", 24.0);
-                        }
                     }
-                } else if (tempObj instanceof JSONObject) {
-                    data.temperature = ((JSONObject) tempObj).optDouble("value", 24.0);
                 }
             }
 
-            // Parse humidity
+            // Parse humidity - get from Hong Kong Observatory
             if (root.has("humidity")) {
                 Object humObj = root.get("humidity");
                 if (humObj instanceof JSONArray) {
                     JSONArray humArray = (JSONArray) humObj;
                     if (humArray.length() > 0) {
-                        data.humidity = humArray.getJSONObject(0).optInt("value", 65);
+                        data.humidity = humArray.getJSONObject(0).optInt("value", 75);
                     }
                 } else if (humObj instanceof JSONObject) {
-                    data.humidity = ((JSONObject) humObj).optInt("value", 65);
+                    data.humidity = ((JSONObject) humObj).optInt("value", 75);
                 }
             }
 
-            // Parse rainfall
+            // Parse rainfall - get max value from all stations
             if (root.has("rainfall")) {
                 Object rainObj = root.get("rainfall");
                 if (rainObj instanceof JSONArray) {
                     JSONArray rainArray = (JSONArray) rainObj;
-                    if (rainArray.length() > 0) {
-                        // Try "max" first, then "min", then "value"
-                        JSONObject first = rainArray.getJSONObject(0);
-                        data.rainfall = first.optDouble("max", first.optDouble("min", first.optDouble("value", 0.0)));
+                    double maxRain = 0;
+                    for (int i = 0; i < rainArray.length(); i++) {
+                        JSONObject station = rainArray.getJSONObject(i);
+                        double max = station.optDouble("max", 0);
+                        if (max > maxRain) maxRain = max;
                     }
-                } else if (rainObj instanceof JSONObject) {
-                    JSONObject rain = (JSONObject) rainObj;
-                    data.rainfall = rain.optDouble("max", rain.optDouble("value", 0.0));
+                    data.rainfall = maxRain;
                 }
             }
 
@@ -256,6 +261,18 @@ public class HkoWeatherService {
                         data.iconCode = String.valueOf(iconCode);
                         data.description = getWeatherDescription(iconCode);
                     }
+                }
+            }
+
+            // Parse weather description if available (more accurate)
+            if (root.has("weatherDesc")) {
+                try {
+                    JSONObject weatherDesc = root.getJSONObject("weatherDesc");
+                    if (weatherDesc.has("en")) {
+                        data.description = weatherDesc.getString("en");
+                    }
+                } catch (Exception e) {
+                    // Ignore, use icon-based description
                 }
             }
 
@@ -300,13 +317,43 @@ public class HkoWeatherService {
             for (int i = 0; i < Math.min(forecastArray.length(), 9); i++) {
                 JSONObject day = forecastArray.getJSONObject(i);
                 ForecastDay forecastDay = new ForecastDay();
-                forecastDay.date = day.optString("forecastDate", "");
+                
+                // Parse date from "yyyyMMdd" to "yyyy-MM-dd" format
+                String rawDate = day.optString("forecastDate", "");
+                if (rawDate.length() == 8) {
+                    forecastDay.date = rawDate.substring(0, 4) + "-" + rawDate.substring(4, 6) + "-" + rawDate.substring(6, 8);
+                } else {
+                    forecastDay.date = rawDate;
+                }
+                
                 forecastDay.week = day.optString("week", "");
                 forecastDay.weather = day.optString("forecastWeather", "");
-                forecastDay.tempMax = day.optInt("forecastMaxtemp", 28);
-                forecastDay.tempMin = day.optInt("forecastMintemp", 22);
-                forecastDay.humidityMax = day.optInt("forecastMaxrh", 80);
-                forecastDay.humidityMin = day.optInt("forecastMinrh", 60);
+                
+                // Parse nested temperature objects
+                if (day.has("forecastMaxtemp")) {
+                    forecastDay.tempMax = day.getJSONObject("forecastMaxtemp").optInt("value", 28);
+                } else {
+                    forecastDay.tempMax = 28;
+                }
+                if (day.has("forecastMintemp")) {
+                    forecastDay.tempMin = day.getJSONObject("forecastMintemp").optInt("value", 22);
+                } else {
+                    forecastDay.tempMin = 22;
+                }
+                if (day.has("forecastMaxrh")) {
+                    forecastDay.humidityMax = day.getJSONObject("forecastMaxrh").optInt("value", 80);
+                } else {
+                    forecastDay.humidityMax = 80;
+                }
+                if (day.has("forecastMinrh")) {
+                    forecastDay.humidityMin = day.getJSONObject("forecastMinrh").optInt("value", 60);
+                } else {
+                    forecastDay.humidityMin = 60;
+                }
+                
+                // Parse forecast icon
+                forecastDay.icon = day.optInt("ForecastIcon", 50);
+                
                 data.forecastDays.add(forecastDay);
             }
         }
@@ -332,22 +379,41 @@ public class HkoWeatherService {
      * Get weather description from HKO icon code.
      */
     private String getWeatherDescription(int iconCode) {
-        if (iconCode >= 50 && iconCode <= 54) return "Sunny";
-        if (iconCode >= 55 && iconCode <= 60) return "Cloudy";
-        if (iconCode >= 61 && iconCode <= 65) return "Overcast";
-        if (iconCode >= 66 && iconCode <= 70) return "Light Rain";
-        if (iconCode >= 71 && iconCode <= 75) return "Rain";
-        if (iconCode >= 76 && iconCode <= 80) return "Heavy Rain";
-        if (iconCode >= 81 && iconCode <= 85) return "Thunderstorm";
-        return "Sunny";
+        // HKO Weather Icon Codes
+        switch (iconCode) {
+            case 50: return "Fine";
+            case 51: return "Sunny Periods";
+            case 52: return "Sunny with Showers";
+            case 53: return "Cloudy";
+            case 54: return "Overcast";
+            case 60: return "Rain";
+            case 61: return "Heavy Rain";
+            case 62: return "Thunderstorm";
+            case 63: return "Showers";
+            case 64: return "Heavy Showers";
+            case 65: return "Isolated Showers";
+            case 70: return "Light Rain";
+            case 71: return "Rain";
+            case 72: return "Heavy Rain";
+            case 73: return "Rain";
+            case 74: return "Heavy Rain";
+            case 75: return "Heavy Rain";
+            case 80: return "Thunderstorm";
+            case 81: return "Thunderstorm";
+            case 82: return "Severe Thunderstorm";
+            case 83: return "Thunderstorm";
+            case 84: return "Severe Thunderstorm";
+            case 85: return "Severe Thunderstorm";
+            default: return iconCode >= 50 && iconCode <= 54 ? "Sunny" : "Cloudy";
+        }
     }
 
     /**
      * Data class for current weather.
      */
     public static class WeatherData {
-        public double temperature = 24.0;
-        public int humidity = 65;
+        public double temperature = 28.0;
+        public int humidity = 75;
         public double rainfall = 0.0;
         public double windSpeed = 10.0;
         public String windDirection = "NE";
@@ -374,6 +440,7 @@ public class HkoWeatherService {
         public int tempMin = 22;
         public int humidityMax = 80;
         public int humidityMin = 60;
+        public int icon = 50;
     }
 
     // Listener interfaces
