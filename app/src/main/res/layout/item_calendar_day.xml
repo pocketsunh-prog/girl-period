@@ -58,6 +58,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Festival Icon -->
+    <ImageView
+        android:id="@+id/ivFestivalIcon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginTop="1dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tvTemp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Indicator Row -->
     <LinearLayout
         android:id="@+id/layoutIndicators"

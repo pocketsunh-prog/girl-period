@@ -237,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tvLunarDate = cellView.findViewById(R.id.tvLunarDate);
         ImageView ivWeatherIcon = cellView.findViewById(R.id.ivWeatherIcon);
         TextView tvTemp = cellView.findViewById(R.id.tvTemp);
+        ImageView ivFestivalIcon = cellView.findViewById(R.id.ivFestivalIcon);
         View vPeriodHighlight = cellView.findViewById(R.id.vPeriodHighlight);
         ImageView vTodayHighlight = cellView.findViewById(R.id.vTodayHighlight);
         View vEventHighlight = cellView.findViewById(R.id.vEventHighlight);
@@ -283,6 +284,25 @@ public class MainActivity extends AppCompatActivity {
             tvTemp.setText(String.format(Locale.getDefault(), "%.0f°", weather.getTemperature()));
         } else {
             tvTemp.setText("--");
+        }
+
+        // Check if this day is a festival
+        String festivalName = FestivalHelper.getFestival(
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                day);
+        if (festivalName != null) {
+            int festivalIconRes = FestivalHelper.getFestivalIcon(festivalName);
+            if (festivalIconRes != 0) {
+                ivFestivalIcon.setImageResource(festivalIconRes);
+                ivFestivalIcon.setVisibility(View.VISIBLE);
+                ivFestivalIcon.setContentDescription(festivalName);
+            }
+            // Set red text color for festival days
+            tvDayNumber.setTextColor(getResources().getColor(R.color.error_red));
+            tvLunarDate.setTextColor(getResources().getColor(R.color.error_red));
+        } else {
+            ivFestivalIcon.setVisibility(View.GONE);
         }
 
         // Check if this day has events
@@ -437,6 +457,15 @@ public class MainActivity extends AppCompatActivity {
             message.append("\nPeriod Day");
         } else if (isPredictedDay) {
             message.append("\nPredicted Period");
+        }
+
+        // Show festival info for this day
+        String festivalName = FestivalHelper.getFestival(
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                day);
+        if (festivalName != null) {
+            message.append("\nFestival: ").append(festivalName).append("\n");
         }
 
         // Show events for this day
