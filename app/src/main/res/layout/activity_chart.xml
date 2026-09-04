@@ -39,6 +39,25 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
+        <ImageButton
+            android:id="@+id/btnExportPdf"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_export_pdf"
+            android:contentDescription="Export PDF"
+            app:tint="@color/primary_pink" />
+
+        <ImageButton
+            android:id="@+id/btnExportExcel"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_export_excel"
+            android:contentDescription="Export Excel"
+            app:tint="@color/primary_pink" />
+
     </LinearLayout>
 
     <!-- Scrollable Content -->

@@ -55,11 +55,16 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String PREFS_SETTINGS = "app_settings";
     private static final String KEY_NOTIFICATIONS = "notifications_enabled";
     private static final String KEY_FINGERPRINT = "fingerprint_enabled";
+    private static final String KEY_EXPORT_URI = "export_folder_uri";
+    private static final int REQUEST_CODE_EXPORT_FOLDER = 1001;
 
     private SwitchMaterial notificationSwitch;
     private SwitchMaterial fingerprintSwitch;
     private ImageButton btnBack;
     private Button btnLogout;
+    private Button btnProfile;
+    private TextView tvExportFolder;
+    private Button btnSelectFolder;
 
     private FrameLayout flColorPink, flColorPurple, flColorBlue, flColorGreen, flColorOrange;
     private ImageView ivCheckPink, ivCheckPurple, ivCheckBlue, ivCheckGreen, ivCheckOrange;
@@ -75,7 +80,6 @@ public class SettingsActivity extends AppCompatActivity {
     private View vDPFontColor;
     private View vDPBorderColor;
     private View vDPSelectedColor;
-    private TextView btnProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,12 +134,17 @@ public class SettingsActivity extends AppCompatActivity {
         vDPBorderColor = findViewById(R.id.vDPBorderColor);
         vDPSelectedColor = findViewById(R.id.vDPSelectedColor);
         btnProfile = findViewById(R.id.btnProfile);
+        tvExportFolder = findViewById(R.id.tvExportFolder);
+        btnSelectFolder = findViewById(R.id.btnSelectFolder);
 
         btnBack.setOnClickListener(v -> finish());
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
             startActivity(intent);
         });
+        btnSelectFolder.setOnClickListener(v -> selectExportFolder());
+
+        updateExportFolderDisplay();
 
         updateCheckMarks();
         updateColorPreviews();
@@ -395,6 +404,49 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    private void selectExportFolder() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        startActivityForResult(intent, REQUEST_CODE_EXPORT_FOLDER);
+    }
+
+    private void updateExportFolderDisplay() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_SETTINGS, MODE_PRIVATE);
+        String uriString = prefs.getString(KEY_EXPORT_URI, null);
+        if (uriString != null) {
+            tvExportFolder.setText("Custom folder selected");
+        } else {
+            tvExportFolder.setText("Default (App Documents)");
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_EXPORT_FOLDER && resultCode == RESULT_OK && data != null) {
+            android.net.Uri treeUri = data.getData();
+            if (treeUri != null) {
+                // Take persistable permission
+                try {
+                    getContentResolver().takePersistableUriPermission(treeUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                } catch (Exception e) {
+                    // Ignore if not persistable
+                }
+                // Save URI to preferences
+                SharedPreferences prefs = getSharedPreferences(PREFS_SETTINGS, MODE_PRIVATE);
+                prefs.edit().putString(KEY_EXPORT_URI, treeUri.toString()).apply();
+                updateExportFolderDisplay();
+                Toast.makeText(this, "Export folder updated!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    static String getExportFolderUri(android.content.Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_SETTINGS, MODE_PRIVATE);
+        return prefs.getString(KEY_EXPORT_URI, null);
     }
 
     private void scheduleDailyCheck() {

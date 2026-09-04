@@ -76,6 +76,36 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         loadPeriodRecords();
         setupCalendar();
+        // Show popup for today's events
+        showTodayEventPopup();
+    }
+
+    private void showTodayEventPopup() {
+        List<Event> todayEvents = new ArrayList<>();
+        String todayStr = dateFormat.format(new Date());
+        for (Event event : events) {
+            if (event.getEventDate().equals(todayStr)) {
+                todayEvents.add(event);
+            }
+        }
+        if (!todayEvents.isEmpty()) {
+            StringBuilder message = new StringBuilder();
+            for (Event event : todayEvents) {
+                message.append("• ").append(event.getTitle()).append("\n");
+                if (event.getNotes() != null && !event.getNotes().isEmpty()) {
+                    message.append("  ").append(event.getNotes()).append("\n");
+                }
+            }
+            new AlertDialog.Builder(this)
+                    .setTitle("Today's Events")
+                    .setMessage(message.toString())
+                    .setPositiveButton("OK", null)
+                    .setNeutralButton("View All", (dialog, which) -> {
+                        Intent intent = new Intent(MainActivity.this, EventListActivity.class);
+                        startActivity(intent);
+                    })
+                    .show();
+        }
     }
 
     private void initViews() {

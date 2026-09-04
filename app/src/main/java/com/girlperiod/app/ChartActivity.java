@@ -1,8 +1,11 @@
 package com.girlperiod.app;
 
 import android.graphics.Color;
+import android.graphics.pdf.PdfDocument;
 import android.os.Bundle;
+import android.os.Environment;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -85,6 +88,8 @@ public class ChartActivity extends AppCompatActivity {
         tvAvgPeriod = findViewById(R.id.tvAvgPeriod);
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnExportPdf).setOnClickListener(v -> exportToPdf());
+        findViewById(R.id.btnExportExcel).setOnClickListener(v -> exportToExcel());
     }
 
     private void setupCharts() {
@@ -280,13 +285,154 @@ public class ChartActivity extends AppCompatActivity {
         if (records.isEmpty()) {
             tvAvgCycle.setText("N/A");
             tvAvgPeriod.setText("N/A");
+            avgCycle = 0;
+            avgDuration = 0;
             return;
         }
 
-        int avgCycle = PeriodPredictor.getAverageCycleLength(records);
-        int avgDuration = PeriodPredictor.getAveragePeriodDuration(records);
+        avgCycle = PeriodPredictor.getAverageCycleLength(records);
+        avgDuration = PeriodPredictor.getAveragePeriodDuration(records);
 
         tvAvgCycle.setText(avgCycle > 0 ? avgCycle + " days" : "28 days");
         tvAvgPeriod.setText(avgDuration + " days");
+    }
+
+    private int avgCycle;
+    private int avgDuration;
+
+    private void exportToPdf() {
+        try {
+            PdfDocument document = new PdfDocument();
+            int pageWidth = 595; // A4 width in points
+            int pageHeight = 842; // A4 height in points
+            int yPosition = 50;
+
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
+            PdfDocument.Page page = document.startPage(pageInfo);
+            android.graphics.Canvas canvas = page.getCanvas();
+            android.graphics.Paint paint = new android.graphics.Paint();
+            paint.setColor(Color.BLACK);
+            paint.setTextSize(24);
+            canvas.drawText("Girl Period - Cycle Report", 50, yPosition, paint);
+            yPosition += 40;
+
+            paint.setTextSize(16);
+            canvas.drawText("Average Cycle: " + (avgCycle > 0 ? avgCycle + " days" : "N/A"), 50, yPosition, paint);
+            yPosition += 25;
+            canvas.drawText("Average Duration: " + avgDuration + " days", 50, yPosition, paint);
+            yPosition += 40;
+
+            paint.setTextSize(14);
+            canvas.drawText("Period History:", 50, yPosition, paint);
+            yPosition += 25;
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            for (PeriodRecord record : records) {
+                if (yPosition > pageHeight - 50) {
+                    document.finishPage(page);
+                    pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, document.getPages().size() + 1).create();
+                    page = document.startPage(pageInfo);
+                    canvas = page.getCanvas();
+                    yPosition = 50;
+                }
+                Date startDate = record.getStartDateDate();
+                Date endDate = record.getEndDateDate();
+                String line = "• " + sdf.format(startDate) + " to " + sdf.format(endDate) +
+                        " (" + record.getDuration() + " days)";
+                canvas.drawText(line, 50, yPosition, paint);
+                yPosition += 20;
+            }
+
+            document.finishPage(page);
+
+            // Save to selected folder or default
+            String exportUriString = SettingsActivity.getExportFolderUri(this);
+            if (exportUriString != null) {
+                // Use selected folder via SAF
+                android.net.Uri treeUri = android.net.Uri.parse(exportUriString);
+                android.net.Uri fileUri = createFileInTree(treeUri, "cycle_report_" + System.currentTimeMillis() + ".pdf", "application/pdf");
+                if (fileUri != null) {
+                    java.io.OutputStream os = getContentResolver().openOutputStream(fileUri);
+                    document.writeTo(os);
+                    document.close();
+                    os.close();
+                    Toast.makeText(this, "PDF exported successfully!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Failed to create file in selected folder", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // Use default app directory
+                java.io.File dir = new java.io.File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "reports");
+                if (!dir.exists()) dir.mkdirs();
+                java.io.File file = new java.io.File(dir, "cycle_report_" + System.currentTimeMillis() + ".pdf");
+                java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
+                document.writeTo(fos);
+                document.close();
+                fos.close();
+                Toast.makeText(this, "PDF exported to: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private android.net.Uri createFileInTree(android.net.Uri treeUri, String fileName, String mimeType) {
+        try {
+            android.net.Uri docUri = android.provider.DocumentsContract.buildDocumentUriUsingTree(treeUri,
+                    android.provider.DocumentsContract.getTreeDocumentId(treeUri));
+            android.net.Uri fileUri = android.provider.DocumentsContract.createDocument(getContentResolver(), docUri, mimeType, fileName);
+            return fileUri;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void exportToExcel() {
+        try {
+            // Create CSV format (can be opened in Excel)
+            StringBuilder csv = new StringBuilder();
+            csv.append("Girl Period - Cycle Report\n");
+            csv.append("Average Cycle:,").append(avgCycle > 0 ? avgCycle + " days" : "N/A").append("\n");
+            csv.append("Average Duration:,").append(avgDuration).append(" days\n\n");
+            csv.append("Period History\n");
+            csv.append("Start Date,End Date,Duration (days),Notes\n");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            for (PeriodRecord record : records) {
+                Date startDate = record.getStartDateDate();
+                Date endDate = record.getEndDateDate();
+                csv.append(sdf.format(startDate)).append(",");
+                csv.append(sdf.format(endDate)).append(",");
+                csv.append(record.getDuration()).append(",");
+                csv.append(record.getNotes() != null ? record.getNotes() : "").append("\n");
+            }
+
+            // Save to selected folder or default
+            String exportUriString = SettingsActivity.getExportFolderUri(this);
+            if (exportUriString != null) {
+                // Use selected folder via SAF
+                android.net.Uri treeUri = android.net.Uri.parse(exportUriString);
+                android.net.Uri fileUri = createFileInTree(treeUri, "cycle_report_" + System.currentTimeMillis() + ".csv", "text/csv");
+                if (fileUri != null) {
+                    java.io.OutputStream os = getContentResolver().openOutputStream(fileUri);
+                    os.write(csv.toString().getBytes());
+                    os.close();
+                    Toast.makeText(this, "Excel/CSV exported successfully!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Failed to create file in selected folder", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // Use default app directory
+                java.io.File dir = new java.io.File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "reports");
+                if (!dir.exists()) dir.mkdirs();
+                java.io.File file = new java.io.File(dir, "cycle_report_" + System.currentTimeMillis() + ".csv");
+                java.io.FileWriter writer = new java.io.FileWriter(file);
+                writer.write(csv.toString());
+                writer.close();
+                Toast.makeText(this, "Excel/CSV exported to: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 }
