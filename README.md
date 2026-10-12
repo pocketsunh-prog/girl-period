@@ -64,10 +64,13 @@ A beautiful Android period-tracking app with a Studio Ghibli-inspired cube girl 
 - Statistics: average/shortest/longest cycle, average duration
 
 ### Notifications
-- **Period reminders** - Gentle Ghibli-style reminders when period expected within 2 days
-- **Event reminders** - Notifications for upcoming events (1 day before, 2 days before, etc.)
-- Daily check via AlarmManager + BroadcastReceiver
-- Notification channels for Android O+
+- **Period reminders** - Gentle Ghibli-style reminders when the predicted period start is 2 days, 1 day away, or today
+- **Period background service** - `PeriodNotificationService` runs as a foreground service (hourly re-check, `START_STICKY`),
+  posts at most one notification per countdown stage per day, and vibrates with high priority on the expected day
+- **Popup notice** - Opening the app within the 2-day window shows a reminder dialog (once per day) with an "Add Period" shortcut
+- **Event reminders** - Repeat notifications for upcoming events (1 day before, 2 days before, 3 days, 1 week…)
+- Daily 08:00 check via `AlarmManager` + `BroadcastReceiver`, re-armed automatically after device reboot or app update
+- Notification channels for Android O+, toggled from Settings (Notifications switch)
 
 ---
 
@@ -197,6 +200,8 @@ adb install app/build/outputs/apk/release/app-release.apk
 - **Weather**: `HkoWeatherService` fetches real data from HKO API with mock fallback via `WeatherService`
 - **Theme**: `GhibliTheme` manages 5 color palettes + calendar styles + date picker customization
 - **Events**: Full CRUD with reminder notifications via `EventNotificationService`
+- **Period reminders**: `PeriodNotificationService` (foreground, hourly) + `NotificationReceiver` (daily alarm / boot),
+  predicting the next period with `PeriodPredictor.getDaysUntilNextPeriod()`
 
 ---
 

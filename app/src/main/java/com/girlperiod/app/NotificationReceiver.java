@@ -3,27 +3,33 @@ package com.girlperiod.app;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 
 /**
  * BroadcastReceiver that triggers the daily period-check.
  * <p>
- * Schedule this receiver with AlarmManager (e.g. setInexactRepeating or setExactAndAllowWhileIdle)
- * to run once per day. On receive it starts {@link PeriodNotificationService} which performs
- * the database query and shows a notification if needed.
+ * AlarmManager fires it once per day (08:00) and it is also registered for
+ * {@code BOOT_COMPLETED}; either way it re-arms the alarm and starts
+ * {@link PeriodNotificationService}, which performs the database query and shows
+ * a reminder when the period is expected within 2 days.
  */
 public class NotificationReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        PeriodNotificationService.createNotificationChannel(context);
+        String action = intent != null ? intent.getAction() : null;
 
-        Intent serviceIntent = new Intent(context, PeriodNotificationService.class);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent);
-        } else {
-            context.startService(serviceIntent);
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action)
+                || Intent.ACTION_LOCKED_BOOT_COMPLETED.equals(action)) {
+            // Alarms do not survive a reboot — re-arm the daily check.
+            if (PeriodNotificationService.isNotificationsEnabled(context)) {
+                PeriodNotificationService.scheduleDaily(context);
+            }
         }
+
+        if (!PeriodNotificationService.isNotificationsEnabled(context)) {
+            return;
+        }
+
+        PeriodNotificationService.start(context);
     }
 }

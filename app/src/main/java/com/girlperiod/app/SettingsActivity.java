@@ -450,34 +450,14 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void scheduleDailyCheck() {
-        PeriodNotificationService.createNotificationChannel(this);
-        Intent intent = new Intent(this, NotificationReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (alarmManager != null) {
-            long triggerAt = System.currentTimeMillis() + AlarmManager.INTERVAL_DAY;
-            alarmManager.setInexactRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAt,
-                    AlarmManager.INTERVAL_DAY,
-                    pendingIntent
-            );
-        }
+        // Daily 08:00 alarm + the background service that watches the 2-day window.
+        PeriodNotificationService.scheduleDaily(this);
+        PeriodNotificationService.start(this);
     }
 
     private void cancelDailyCheck() {
-        Intent intent = new Intent(this, NotificationReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (alarmManager != null) {
-            alarmManager.cancel(pendingIntent);
-        }
+        PeriodNotificationService.cancelDaily(this);
+        PeriodNotificationService.stop(this);
     }
 
     private void scheduleEventReminderCheck() {

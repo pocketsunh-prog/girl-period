@@ -21,6 +21,11 @@ public class EventNotificationReceiver extends BroadcastReceiver {
             rescheduleAlarm(context);
         }
 
+        // Respect the notification switch in Settings
+        if (!PeriodNotificationService.isNotificationsEnabled(context)) {
+            return;
+        }
+
         // Start the notification service
         EventNotificationService.createNotificationChannel(context);
         Intent serviceIntent = new Intent(context, EventNotificationService.class);

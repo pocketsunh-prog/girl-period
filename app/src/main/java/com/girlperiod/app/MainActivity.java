@@ -1,6 +1,7 @@
 package com.girlperiod.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -69,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
         loadPeriodRecords();
         setupCalendar();
         updateWeatherSummary();
+        // Keep the period countdown running in the background.
+        if (PeriodNotificationService.isNotificationsEnabled(this)) {
+            PeriodNotificationService.scheduleDaily(this);
+            PeriodNotificationService.start(this);
+        }
     }
 
     @Override
@@ -78,6 +84,59 @@ public class MainActivity extends AppCompatActivity {
         setupCalendar();
         // Show popup for today's events
         showTodayEventPopup();
+        // Show popup when the period is coming within 2 days
+        showPeriodUpcomingPopup();
+    }
+
+    /**
+     * Pops a notice when the predicted period start is today or within the next 2 days.
+     * Shown at most once per day.
+     */
+    private void showPeriodUpcomingPopup() {
+        if (periodRecords == null || periodRecords.isEmpty()) {
+            return;
+        }
+
+        // Respect the Notifications switch in Settings
+        if (!PeriodNotificationService.isNotificationsEnabled(this)) {
+            return;
+        }
+
+        int daysUntil = PeriodPredictor.getDaysUntilNextPeriod(periodRecords);
+        if (daysUntil < 0 || daysUntil > PeriodNotificationService.REMIND_DAYS_BEFORE) {
+            return;
+        }
+
+        SharedPreferences prefs =
+                getSharedPreferences(PeriodNotificationService.PREFS_SETTINGS, MODE_PRIVATE);
+        String todayStr = dateFormat.format(new Date());
+        if (todayStr.equals(prefs.getString("period_popup_shown_date", ""))) {
+            return;
+        }
+        prefs.edit().putString("period_popup_shown_date", todayStr).apply();
+
+        String title;
+        String message;
+        if (daysUntil == 0) {
+            title = "Your period may start today";
+            message = "Take it easy today, and keep a little kindness for yourself. 🌸";
+        } else if (daysUntil == 1) {
+            title = "Your period is expected tomorrow";
+            message = "One day to go — maybe prepare your supplies tonight. 🌙";
+        } else {
+            title = "Your period is expected in " + daysUntil + " days";
+            message = "Your cycle is on its way. A warm cup of tea and a cozy blanket await. ☕";
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .setNeutralButton("Add Period", (dialog, which) -> {
+                    Intent intent = new Intent(MainActivity.this, AddPeriodActivity.class);
+                    startActivity(intent);
+                })
+                .show();
     }
 
     private void showTodayEventPopup() {

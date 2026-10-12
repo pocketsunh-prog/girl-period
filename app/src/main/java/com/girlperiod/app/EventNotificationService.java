@@ -56,6 +56,9 @@ public class EventNotificationService extends Service {
         checkAndNotify();
 
         // Schedule periodic checks every hour for repeat reminders
+        if (checkRunnable != null) {
+            handler.removeCallbacks(checkRunnable);
+        }
         checkRunnable = new Runnable() {
             @Override
             public void run() {
