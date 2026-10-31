@@ -120,16 +120,13 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Custom Calendar Grid -->
-    <GridView
-        android:id="@+id/gridCalendar"
+    <!-- Custom Calendar Grid (built in code as week rows so it stays aligned) -->
+    <LinearLayout
+        android:id="@+id/calendarContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:numColumns="7"
-        android:stretchMode="columnWidth"
-        android:verticalSpacing="2dp"
-        android:horizontalSpacing="2dp" />
+        android:orientation="vertical" />
 
     <!-- Buttons -->
     <LinearLayout
