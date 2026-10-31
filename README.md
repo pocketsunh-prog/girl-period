@@ -1,166 +1,197 @@
-# Girl Period
+# Girl Period 🌸
 
-A beautiful Android period-tracking app with a Studio Ghibli-inspired cube girl UI. Track your menstrual cycle with lunar calendar info, real-time weather data, events, and more — all wrapped in a soft pastel aesthetic.
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0-E8A0BF?style=for-the-badge&logo=android&logoColor=white)](https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk)
+[![Platform](https://img.shields.io/badge/platform-Android%207.0%2B-3DDC84?logo=android&logoColor=white)](#)
+[![Style](https://img.shields.io/badge/style-Studio%20Ghibli-pink)](#)
+[![Privacy](https://img.shields.io/badge/data-100%25%20on%20device-brightgreen)](#)
 
-![Studio Ghibli Inspired](https://img.shields.io/badge/style-Studio%20Ghibli-pink)
-![Android](https://img.shields.io/badge/platform-Android-green)
-![Min SDK](https://img.shields.io/badge/minSdk-24-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+A Studio Ghibli-inspired period tracker for Android. Record your cycle, read the Chinese lunar
+calendar, see live Hong Kong weather, keep events, and understand your body with simple charts —
+all wrapped in a soft pastel cube-girl UI that you can recolour.
+
+Everything is stored in a local SQLite database on your phone. No account server, no cloud, no ads.
 
 ---
 
-## Features
+## ⬇️ Download
 
-### User Authentication
-- **SQLite local database** for user accounts
-- **Fingerprint login** using AndroidX BiometricPrompt
-- Secure session management via SharedPreferences
+| | |
+|---|---|
+| **Latest version** | v1.0 (`versionCode 1`) |
+| **File** | [`girl-period-v1.0.apk`](https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk) · 5.3 MB |
+| **Requirements** | Android 7.0 (API 24) or newer · ~15 MB free space |
+| **Signature** | Signed with the project release key (always install updates over the old app) |
 
-### User Profile
-- **Profile image** - Pick from gallery, saved to app storage
-- **Date of Birth** - Ghibli-styled date picker with year selection
-- **Update password** - Change password with current password verification
-- **Reset password** - Password reset via email (ready for integration)
+**Direct link:** <https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk>
 
-### Calendar & Tracking
-- **Monthly calendar grid** with period day highlighting
-- **Chinese Lunar calendar** date conversion
-- **Year selection** - Jump to any year (100 years range)
-- **Today button** - Quick jump to current date
-- **Period prediction** with fertile window and ovulation estimation
-- **Event management** - Add/edit/delete events with reminders
-- **Event highlighting** - Orange highlight on days with events
-- Day detail dialog with full lunar + weather + event info
+### Install in 3 steps
 
-### Real-Time Weather (HKO API)
-- **Live weather data** from [Hong Kong Observatory Open Data](https://www.hko.gov.hk/en/abouthko/opendata_intro.htm)
-- **Temperature, Humidity, Wind speed, Rainfall, UV Index**
-- **Manual refresh button** - Tap to update weather anytime
-- **Auto fallback** to mock data when offline
-- **7-day weather forecast** support
+1. **Download** the APK on your Android phone (tap the badge above or the direct link).
+2. Open the downloaded file. If Android asks, allow **"Install unknown apps"** for your browser or
+   file manager (Settings → Apps → Special access → Install unknown apps).
+3. Tap **Install**, then open **Girl Period** and create your account.
 
-### Ghibli DatePicker
-- **Custom calendar dialog** with soft pastel styling
-- **Year picker** - Tap month/year to select year
-- **Customizable appearance**:
-  - Font family (sans-serif, serif, monospace, etc.)
-  - Font size (12-24sp)
-  - Font color (24 preset colors + custom hex)
-  - Border color (24 preset colors + custom hex)
-  - Selected day color (24 preset colors + custom hex)
+> On first launch the app asks for notification, location and biometric permissions. Notification
+> permission is needed for period/event reminders; location is used only to label the weather card
+> and can be declined (your last saved city is still shown).
 
-### Studio Ghibli Cube Girl UI
-- **5 switchable color themes**: Sakura (pink), Matcha (green), Sky (blue), Lavender (purple), Peach (orange)
-- **4 calendar styles**: Default, Compact, Rounded, Minimal
-- **Customizable calendar colors**: Text color + background color
-- Custom-drawn cube girl mascot that changes color with the theme
-- **Long cat icon** for today's date highlight
-- Soft pastel Ghibli-inspired aesthetic throughout
+---
 
-### Analysis & Charts
+## 📱 Screenshots
+
+| Calendar | Day details | Add period |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/calendar.png" width="260" alt="Monthly calendar with lunar dates, weather and period highlight"> | <img src="docs/screenshots/day-detail.png" width="260" alt="Day detail with lunar date, weather and period info"> | <img src="docs/screenshots/add-period.png" width="260" alt="Add a period start and end date"> |
+| Lunar + weather + period + events | Lunar, weather, festival and period info | Start/end dates with the Ghibli picker |
+
+| Ghibli date picker | Events | Event editor |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/date-picker.png" width="260" alt="Ghibli-styled date picker with correct weekday alignment"> | <img src="docs/screenshots/events.png" width="260" alt="Event list with reminder badges"> | <img src="docs/screenshots/event-editor.png" width="260" alt="Add or edit an event with reminder"> |
+| Customizable fonts, colours, borders | Add / edit / delete, with reminders | Title, date, reminder days, notes |
+
+| Charts | Cycle phases | Settings |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/charts.png" width="260" alt="Cycle length line chart and period duration bar chart"> | <img src="docs/screenshots/phases.png" width="260" alt="Phase distribution donut chart"> | <img src="docs/screenshots/settings.png" width="260" alt="Settings with theme colours and calendar styles"> |
+| Cycle length, duration, averages | Menstrual / follicular / ovulation / luteal | 5 themes, calendar styles, DatePicker style |
+
+| Login | Register | Profile |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/login.png" width="260" alt="Login screen with cube girl mascot"> | <img src="docs/screenshots/register.png" width="260" alt="Create account screen with fingerprint toggle"> | <img src="docs/screenshots/profile.png" width="260" alt="Profile with photo, date of birth and password"> |
+| Password or fingerprint | Username + password + fingerprint | Photo, DOB, password, location |
+
+| Reminder popup |
+|:---:|
+| <img src="docs/screenshots/event-popup.png" width="260" alt="Today's events popup"> |
+| Events and the 2-day period notice appear when you open the app |
+
+---
+
+## ✨ Features
+
+### Cycle tracking
+- Month calendar with **period day highlighting** (start/end days styled distinctly)
+- **Chinese lunar calendar** on every day, plus traditional festivals with a star icon
+- **Prediction** of the next period, fertile window and ovulation from your history
+- **Day details** dialog: date, lunar date, weather, festival, events, and period actions
+- Year jump (100 years) and a **Today** button
+
+### Ghibli UI
+- **5 color themes**: Sakura, Matcha, Sky, Lavender, Peach
+- **4 calendar cell styles**: Default, Compact, Rounded, Minimal
+- Configurable calendar text colour and cell background colour
+- Custom **Ghibli DatePicker**: choose font family, font size, font / border / selected-day colours
+- Hand-drawn cube girl mascot and long-cat "today" icon
+
+### Live weather (Hong Kong Observatory)
+- Real-time **temperature, UV index, humidity, rainfall and wind** from the
+  [HKO Open Data API](https://www.hko.gov.hk/en/abouthko/opendata_intro.htm)
+- Up to **9-day forecast** shown on the calendar cells, matching each date
+- Refresh button, location label from your saved city, graceful offline fallback
+
+### Events & reminders
+- Add / edit / delete events with a title, date, notes and reminder lead time
+  (1 day, 2 days, 3 days or 1 week before)
+- Events highlighted on the calendar, with a dedicated event list page
+- A **background foreground-service** re-checks hourly and repeats the reminder
+  (a 3-day reminder notifies on each of the 3 days)
+- Today's events popup when you open the app
+
+### Period reminders
+- **2 days before** the predicted period, the app notifies you, then again at 1 day
+  and on the expected day — with a high-priority, vibrating notification on the day
+- In-app popup (once per day) with an **Add Period** shortcut
+- Daily 08:00 check re-armed automatically after reboot
+
+### Analysis & export
 - **Line chart**: cycle length over time
 - **Bar chart**: period duration over time
-- **Pie chart**: menstrual phase distribution
-- Statistics: average/shortest/longest cycle, average duration
+- **Donut chart**: menstrual / follicular / ovulation / luteal phase split
+- Average / shortest / longest cycle and average period length
+- Export the analysis as **PDF** or **Excel (CSV)**, to a folder you pick in Settings
 
-### Notifications
-- **Period reminders** - Gentle Ghibli-style reminders when the predicted period start is 2 days, 1 day away, or today
-- **Period background service** - `PeriodNotificationService` runs as a foreground service (hourly re-check, `START_STICKY`),
-  posts at most one notification per countdown stage per day, and vibrates with high priority on the expected day
-- **Popup notice** - Opening the app within the 2-day window shows a reminder dialog (once per day) with an "Add Period" shortcut
-- **Event reminders** - Repeat notifications for upcoming events (1 day before, 2 days before, 3 days, 1 week…)
-- Daily 08:00 check via `AlarmManager` + `BroadcastReceiver`, re-armed automatically after device reboot or app update
-- Notification channels for Android O+, toggled from Settings (Notifications switch)
+### Account & profile
+- Local username/password accounts in **SQLite**
+- **Fingerprint login** via AndroidX Biometric
+- Profile photo from the gallery, date of birth (birthday events are created automatically),
+  change / reset password, update saved location
 
 ---
 
-## Screenshots
+## 🚀 How to use
 
-| Login | Calendar | Charts | Settings |
-|-------|----------|--------|----------|
-| Cube girl mascot + fingerprint | Lunar + weather + period highlight | Line/Bar/Pie analysis | 5 color themes + calendar styles |
+### 1. Create an account
+Open the app → **Register** → choose a username and password (tick *Enable fingerprint login* if you
+want biometric sign-in) → **Register**. Accounts live only on your phone.
 
-| DatePicker | Profile | Events | Weather |
-|------------|---------|--------|---------|
-| Ghibli-styled with customization | Image + DOB + password | Add/edit/delete with reminders | Real-time HKO data |
+### 2. Log in
+Enter your credentials → **Login**. If fingerprint login is enabled for that account, a
+**Fingerprint Login** button appears under the password field.
 
----
+### 3. Record your period
+Tap the pink **+** button → pick the **Start Date** and **End Date** in the Ghibli date picker →
+optionally add notes → **Save Period**. Add past cycles the same way — after two or more records the
+app starts predicting your next period.
 
-## Project Structure
+### 4. Read the calendar
+- The current month opens by default; **‹ ›** change months and tapping the title jumps years.
+- **Today** returns to the current date.
+- Pink-outlined cells are recorded period days; the dashed prediction is your upcoming period.
+- Each cell shows the lunar date, festival icon, weather icon and temperature.
+- Tap any day for **Day Details**: lunar date, weather, festival, events and quick actions.
 
-```
-girl-period/
-├── app/
-│   ├── build.gradle              # App-level build config with signing
-│   ├── proguard-rules.pro
-│   └── src/main/
-│       ├── AndroidManifest.xml
-│       ├── java/com/girlperiod/app/
-│       │   ├── LoginActivity.java
-│       │   ├── RegisterActivity.java
-│       │   ├── MainActivity.java          # Calendar with lunar + weather + events
-│       │   ├── ChartActivity.java         # MPAndroidChart analysis
-│       │   ├── AddPeriodActivity.java     # Add/edit period records
-│       │   ├── ProfileActivity.java       # Profile image, DOB, password
-│       │   ├── EventActivity.java         # Add/edit/delete events
-│       │   ├── SettingsActivity.java      # Theme + calendar + datepicker styles
-│       │   ├── SessionManager.java        # SharedPreferences session
-│       │   ├── LunarCalendar.java         # Chinese lunar conversion
-│       │   ├── WeatherService.java        # Mock + real weather (HKO API)
-│       │   ├── HkoWeatherService.java     # HKO Open Data API integration
-│       │   ├── PeriodPredictor.java       # Next period / fertile window
-│       │   ├── PeriodNotificationService.java
-│       │   ├── EventNotificationService.java
-│       │   ├── NotificationReceiver.java
-│       │   ├── EventNotificationReceiver.java
-│       │   ├── ui/GhibliTheme.java        # 5 color themes + calendar styles
-│       │   ├── ui/CubeGirlView.java       # Custom cube girl drawing
-│       │   ├── ui/GhibliDatePickerDialog.java  # Custom Ghibli-styled date picker
-│       │   └── data/
-│       │       ├── DatabaseHelper.java    # SQLite users + period_records + events
-│       │       ├── User.java              # User model with DOB + profile image
-│       │       ├── PeriodRecord.java
-│       │       └── Event.java             # Event model with reminder
-│       └── res/
-│           ├── layout/           # 10+ activity layouts
-│           ├── drawable/         # 60+ backgrounds, icons, cube girl mascots
-│           ├── values/           # colors, strings, styles, themes
-│           ├── menu/             # Bottom navigation menu
-│           ├── color/            # Nav color selector
-│           └── mipmap-anydpi-v26/ # Adaptive launcher icons
-├── build.gradle                  # Root build config
-├── settings.gradle               # Includes JitPack for MPAndroidChart
-├── gradle.properties
-├── gradle/wrapper/gradle-wrapper.properties
-├── girlperiod-release-key.jks    # Release signing key
-└── README.md
-```
+### 5. Check the weather
+The card at the top shows live HKO data for Hong Kong (temperature, UV, humidity, rainfall, wind).
+Tap the **refresh** icon to update; the location label comes from the last city saved in your profile.
+
+### 6. Plan events
+Bottom bar → **Events** → **Add** → title, date, reminder lead time and notes → **Save Event**.
+Events appear in the list, are highlighted on the calendar, and trigger repeat reminders.
+
+### 7. Analyse your cycle
+Bottom bar → **Charts**: averages, cycle-length line, duration bars and phase distribution.
+Use the **PDF** / **Excel** icons to export, then pick an export folder in Settings.
+
+### 8. Make it yours
+Bottom bar → **Settings**: pick one of the 5 themes, calendar text/background colours, a calendar
+cell style, and customise the Ghibli DatePicker (font family, size, font/border/selected colours).
+Notifications and fingerprint login toggles live here too.
+
+### 9. Get your reminders
+Keep the **Notifications** switch on. Two days before your predicted period you get a gentle
+reminder, then again the day before and on the day. Event reminders follow the lead time you chose.
 
 ---
 
-## Build & Release
+## 🛠 Build from source
 
-### Prerequisites
-- Android Studio or JDK 17+
-- Android SDK with compileSdk 34
-- Gradle 8.2+
+Requirements: **JDK 17**, Android SDK with **compileSdk 34**, Gradle 8.2 (or use the wrapper).
 
-### Debug Build
 ```bash
+git clone https://github.com/pocketsunh-prog/girl-period.git
+cd girl-period
+
+# Debug build
 ./gradlew assembleDebug
-```
 
-### Release Build
-The release build is configured with signing. The keystore is at the project root:
-
-```bash
+# Signed release build (uses girlperiod-release-key.jks)
 ./gradlew assembleRelease
 ```
 
-Output: `app/build/outputs/apk/release/app-release.apk`
+Output:
 
-### Signing Configuration
+| Build | APK |
+|---|---|
+| Debug | `app/build/outputs/apk/debug/app-debug.apk` |
+| Release | `app/build/outputs/apk/release/app-release.apk` |
+
+Install on a connected device:
+
+```bash
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
 The release keystore was generated with:
+
 ```bash
 keytool -genkeypair -v \
   -keystore girlperiod-release-key.jks \
@@ -168,55 +199,97 @@ keytool -genkeypair -v \
   -alias girlperiod-key
 ```
 
-**Install on device:**
-```bash
-adb install app/build/outputs/apk/debug/app-debug.apk
-adb install app/build/outputs/apk/release/app-release.apk
+> **Note:** the keystore and its passwords are included in this repository for convenience of this
+> hobby project. If you publish your own build, generate your own keystore and keep it private.
+
+---
+
+## 📁 Project structure
+
+```
+girl-period/
+├── app/src/main/
+│   ├── java/com/girlperiod/app/
+│   │   ├── LoginActivity.java              # Login + fingerprint
+│   │   ├── RegisterActivity.java           # Create local account
+│   │   ├── MainActivity.java               # Calendar, lunar, weather, events, popup notices
+│   │   ├── ChartActivity.java              # MPAndroidChart analysis + PDF/Excel export
+│   │   ├── AddPeriodActivity.java          # Add / edit / delete period records
+│   │   ├── EventActivity.java              # Add / edit / delete events
+│   │   ├── EventListActivity.java          # Event list page
+│   │   ├── SettingsActivity.java           # Themes, calendar + date picker styles, toggles
+│   │   ├── ProfileActivity.java            # Photo, DOB, password, location
+│   │   ├── PeriodPredictor.java            # Next period, fertile window, ovulation
+│   │   ├── HkoWeatherService.java          # HKO Open Data client
+│   │   ├── WeatherService.java             # Offline fallback weather
+│   │   ├── LunarCalendar.java              # Chinese lunar conversion
+│   │   ├── FestivalHelper.java             # Western + lunar festivals and icons
+│   │   ├── PeriodNotificationService.java  # 2-day period reminder foreground service
+│   │   ├── EventNotificationService.java   # Event reminder foreground service
+│   │   ├── NotificationReceiver.java       # Daily alarm + boot re-arm (period)
+│   │   ├── EventNotificationReceiver.java  # Daily alarm + boot re-arm (events)
+│   │   ├── SessionManager.java             # SharedPreferences session
+│   │   ├── PermissionHelper.java           # Runtime permission dialogs
+│   │   ├── LocationHelper.java             # Last known location + geocoding
+│   │   ├── ui/GhibliTheme.java             # 5 themes, calendar + picker styling
+│   │   ├── ui/GhibliDatePickerDialog.java  # Custom Ghibli date picker
+│   │   ├── ui/CubeGirlView.java            # Hand-drawn mascot
+│   │   └── data/                           # SQLite helper + models
+│   └── res/                                # Layouts, drawables, colours, menus
+├── docs/screenshots/                       # Screenshots used by this README
+├── download/girl-period-v1.0.apk           # Prebuilt signed APK for direct download
+├── girlperiod-release-key.jks              # Release signing key
+└── README.md
 ```
 
-> **Note:** For production, replace the debug keystore with your own and update the credentials in `app/build.gradle`. Never commit real keystore passwords to version control.
-
 ---
 
-## Tech Stack
+## 🧩 Tech stack
 
-| Component | Library |
-|-----------|---------|
-| UI | AndroidX AppCompat, Material Components |
-| Charts | [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) v3.1.0 |
+| Area | Used |
+|---|---|
+| Language / SDK | Java, minSdk 24, targetSdk 34, compileSdk 34 |
+| Build | Gradle 8.2, Android Gradle Plugin 8.1.0, JDK 17 |
+| UI | AndroidX AppCompat, Material Components, ConstraintLayout, CardView |
+| Charts | [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) 3.1.0 |
 | Biometrics | AndroidX Biometric 1.1.0 |
-| Database | SQLite (Android built-in) |
-| Weather API | [HKO Open Data](https://www.hko.gov.hk/en/abouthko/opendata_intro.htm) |
-| Date/Time | [ThreeTenABP](https://github.com/JakeWharton/ThreeTenABP) 1.4.6 |
-| Build | Gradle 8.2, AGP 8.1.0 |
+| Dates | ThreeTenABP 1.4.6 + `java.util.Calendar` |
+| Storage | SQLite (built-in), SharedPreferences, Storage Access Framework for exports |
+| Weather | [HKO Open Data](https://www.hko.gov.hk/en/abouthko/opendata_intro.htm) |
 
 ---
 
-## Architecture
+## 🧠 How it works
 
-- **Data Layer**: `DatabaseHelper` manages SQLite with three tables (`users`, `period_records`, `events`)
-- **Session**: `SessionManager` persists login state via SharedPreferences
-- **Prediction**: `PeriodPredictor` calculates next period, fertile window, and ovulation from historical records
-- **Weather**: `HkoWeatherService` fetches real data from HKO API with mock fallback via `WeatherService`
-- **Theme**: `GhibliTheme` manages 5 color palettes + calendar styles + date picker customization
-- **Events**: Full CRUD with reminder notifications via `EventNotificationService`
-- **Period reminders**: `PeriodNotificationService` (foreground, hourly) + `NotificationReceiver` (daily alarm / boot),
-  predicting the next period with `PeriodPredictor.getDaysUntilNextPeriod()`
-
----
-
-## Weather API Reference
-
-Weather data is sourced from the [Hong Kong Observatory Open Data](https://www.hko.gov.hk/en/abouthko/opendata_intro.htm):
-
-| Data | API Endpoint |
-|------|-------------|
-| Current Weather | `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en` |
-| Weather Forecast | `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en` |
-| UV Index | `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=uvindex&lang=en` |
+- **Data** — `DatabaseHelper` owns three SQLite tables: `users`, `period_records`, `events`.
+  All rows are keyed by the logged-in user id.
+- **Prediction** — `PeriodPredictor` averages your recorded cycle lengths (default 28 days when there
+  is not enough history) to estimate the next start, the fertile window and ovulation.
+- **Reminders** — `PeriodNotificationService` and `EventNotificationService` run as foreground
+  services, re-check hourly, and are started/re-armed by `AlarmManager` receivers every morning at
+  08:00 and after a reboot.
+- **Theme** — `GhibliTheme` stores the palette and calendar/date-picker customisation in
+  `ghibli_theme_prefs` and is applied in every activity's `onCreate`.
+- **Weather** — `HkoWeatherService` parses current readings, the 9-day forecast and the UV index;
+  `WeatherService` produces plausible values when the network or API is unavailable.
 
 ---
 
-## License
+## 🌦 Weather API reference
 
-MIT License. Feel free to use and modify.
+Weather data comes from the Hong Kong Observatory Open Data API:
+
+| Data | Endpoint |
+|---|---|
+| Current weather | `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en` |
+| 9-day forecast | `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en` |
+| UV index | `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=uvindex&lang=en` |
+
+The weather card is Hong Kong specific (HKO only covers Hong Kong); without internet the app falls
+back to cached/offline values.
+
+---
+
+## 📄 License
+
+MIT License — free to use, modify and share.

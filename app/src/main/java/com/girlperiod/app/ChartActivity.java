@@ -104,12 +104,16 @@ public class ChartActivity extends AppCompatActivity {
             return;
         }
 
+        // The database returns records newest-first; go oldest-first so each
+        // cycle length is a positive difference between consecutive starts.
+        List<PeriodRecord> chronological = getChronologicalRecords();
+
         List<Entry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
-        for (int i = 1; i < records.size(); i++) {
-            Date startDate1 = records.get(i - 1).getStartDateDate();
-            Date startDate2 = records.get(i).getStartDateDate();
+        for (int i = 1; i < chronological.size(); i++) {
+            Date startDate1 = chronological.get(i - 1).getStartDateDate();
+            Date startDate2 = chronological.get(i).getStartDateDate();
             if (startDate1 != null && startDate2 != null) {
                 long diff = startDate2.getTime() - startDate1.getTime();
                 int days = (int) (diff / (1000 * 60 * 60 * 24));
@@ -169,21 +173,39 @@ public class ChartActivity extends AppCompatActivity {
         cycleLineChart.invalidate();
     }
 
+    /** Records ordered oldest-first so charts read left-to-right through time. */
+    private List<PeriodRecord> getChronologicalRecords() {
+        List<PeriodRecord> sorted = new ArrayList<>(records);
+        java.util.Collections.sort(sorted, new java.util.Comparator<PeriodRecord>() {
+            @Override
+            public int compare(PeriodRecord a, PeriodRecord b) {
+                Date first = a.getStartDateDate();
+                Date second = b.getStartDateDate();
+                if (first == null && second == null) return 0;
+                if (first == null) return -1;
+                if (second == null) return 1;
+                return first.compareTo(second);
+            }
+        });
+        return sorted;
+    }
+
     private void setupDurationBarChart() {
         if (records.isEmpty()) {
             durationBarChart.setNoDataText("No period records yet");
             return;
         }
 
+        List<PeriodRecord> chronological = getChronologicalRecords();
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
-        for (int i = 0; i < records.size(); i++) {
-            int duration = records.get(i).getDuration();
+        for (int i = 0; i < chronological.size(); i++) {
+            int duration = chronological.get(i).getDuration();
             if (duration > 0) {
                 entries.add(new BarEntry(entries.size(), duration));
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd", Locale.getDefault());
-                Date startDate = records.get(i).getStartDateDate();
+                Date startDate = chronological.get(i).getStartDateDate();
                 labels.add(startDate != null ? sdf.format(startDate) : "");
             }
         }
