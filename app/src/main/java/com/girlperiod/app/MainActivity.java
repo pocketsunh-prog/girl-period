@@ -23,6 +23,7 @@ import com.girlperiod.app.data.Event;
 import com.girlperiod.app.data.PeriodRecord;
 import com.girlperiod.app.data.User;
 import com.girlperiod.app.ui.GhibliTheme;
+import com.girlperiod.app.widget.CalendarWidgetProvider;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -86,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
         showTodayEventPopup();
         // Show popup when the period is coming within 2 days
         showPeriodUpcomingPopup();
+        // Keep the home-screen widget in sync with the calendar data
+        CalendarWidgetProvider.updateAllWidgets(this);
     }
 
     /**

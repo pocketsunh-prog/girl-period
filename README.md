@@ -18,7 +18,7 @@ Everything is stored in a local SQLite database on your phone. No account server
 | | |
 |---|---|
 | **Latest version** | v1.0 (`versionCode 1`) |
-| **File** | [`girl-period-v1.0.apk`](https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk) · 5.3 MB |
+| **File** | [`girl-period-v1.0.apk`](https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk) · 5.4 MB |
 | **Requirements** | Android 7.0 (API 24) or newer · ~15 MB free space |
 | **Signature** | Signed with the project release key (always install updates over the old app) |
 
@@ -59,10 +59,10 @@ Everything is stored in a local SQLite database on your phone. No account server
 | <img src="docs/screenshots/login.png" width="260" alt="Login screen with cube girl mascot"> | <img src="docs/screenshots/register.png" width="260" alt="Create account screen with fingerprint toggle"> | <img src="docs/screenshots/profile.png" width="260" alt="Profile with photo, date of birth and password"> |
 | Password or fingerprint | Username + password + fingerprint | Photo, DOB, password, location |
 
-| Reminder popup |
-|:---:|
-| <img src="docs/screenshots/event-popup.png" width="260" alt="Today's events popup"> |
-| Events and the 2-day period notice appear when you open the app |
+| Reminder popup | Home-screen widget |
+|:---:|:---:|
+| <img src="docs/screenshots/event-popup.png" width="260" alt="Today's events popup"> | <img src="docs/screenshots/widget.png" width="260" alt="Dark home-screen calendar widget with today circled, lime weekends, event and period dots"> |
+| Events and the 2-day period notice appear when you open the app | Compact month calendar with today, event and period dots |
 
 ---
 
@@ -81,6 +81,15 @@ Everything is stored in a local SQLite database on your phone. No account server
 - Configurable calendar text colour and cell background colour
 - Custom **Ghibli DatePicker**: choose font family, font size, font / border / selected-day colours
 - Hand-drawn cube girl mascot and long-cat "today" icon
+
+### Home-screen widget
+- **Dark month calendar widget** (4×5 cells) that sits on your launcher next to your other widgets
+- Weekends in lime, **today circled in yellow**, exactly like the app's pixel-inspired look
+- **Dots on the days that matter**: lime dot = an event, pink dot = a recorded period day
+- **新增** button opens *Add Period* straight from the home screen; tapping the month or any day
+  opens the app
+- Refresh automatically at midnight (date change) and immediately after you add, edit or delete a
+  period or event
 
 ### Live weather (Hong Kong Observatory)
 - Real-time **temperature, UV index, humidity, rainfall and wind** from the
@@ -160,6 +169,12 @@ Notifications and fingerprint login toggles live here too.
 Keep the **Notifications** switch on. Two days before your predicted period you get a gentle
 reminder, then again the day before and on the day. Event reminders follow the lead time you chose.
 
+### 10. Add the home-screen widget
+Long-press an empty spot on your home screen → **Widgets** → **Girl Period** → drag
+**Calendar·Calendar** onto the launcher. The widget follows your real data: it shows the current
+month, circles today, puts a lime dot on days with events and a pink dot on period days. Tap
+**新增** to add a period without opening the app first.
+
 ---
 
 ## 🛠 Build from source
@@ -234,6 +249,8 @@ girl-period/
 │   │   ├── ui/GhibliTheme.java             # 5 themes, calendar + picker styling
 │   │   ├── ui/GhibliDatePickerDialog.java  # Custom Ghibli date picker
 │   │   ├── ui/CubeGirlView.java            # Hand-drawn mascot
+│   │   ├── widget/CalendarWidgetProvider.java  # Home-screen calendar widget
+│   │   ├── widget/WidgetIds.java           # View ids of the 42 widget day cells
 │   │   └── data/                           # SQLite helper + models
 │   └── res/                                # Layouts, drawables, colours, menus
 ├── docs/screenshots/                       # Screenshots used by this README

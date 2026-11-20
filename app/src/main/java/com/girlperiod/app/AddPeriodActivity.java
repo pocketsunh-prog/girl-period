@@ -16,6 +16,7 @@ import com.girlperiod.app.data.PeriodRecord;
 import com.girlperiod.app.data.User;
 import com.girlperiod.app.ui.GhibliDatePickerDialog;
 import com.girlperiod.app.ui.GhibliTheme;
+import com.girlperiod.app.widget.CalendarWidgetProvider;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -196,6 +197,7 @@ public class AddPeriodActivity extends AppCompatActivity {
         long id = dbHelper.addPeriodRecord(record);
         if (id > 0) {
             Toast.makeText(this, "Period record saved!", Toast.LENGTH_SHORT).show();
+            CalendarWidgetProvider.updateAllWidgets(this);
             finish();
         } else {
             Toast.makeText(this, "Failed to save record", Toast.LENGTH_SHORT).show();
@@ -229,6 +231,7 @@ public class AddPeriodActivity extends AppCompatActivity {
         int rows = dbHelper.updatePeriodRecord(record);
         if (rows > 0) {
             Toast.makeText(this, "Period record updated!", Toast.LENGTH_SHORT).show();
+            CalendarWidgetProvider.updateAllWidgets(this);
             finish();
         } else {
             Toast.makeText(this, "Failed to update record", Toast.LENGTH_SHORT).show();
@@ -243,6 +246,7 @@ public class AddPeriodActivity extends AppCompatActivity {
                     int rows = dbHelper.deletePeriodRecord(editRecordId);
                     if (rows > 0) {
                         Toast.makeText(this, "Period record deleted", Toast.LENGTH_SHORT).show();
+                        CalendarWidgetProvider.updateAllWidgets(this);
                         finish();
                     } else {
                         Toast.makeText(this, "Failed to delete record", Toast.LENGTH_SHORT).show();

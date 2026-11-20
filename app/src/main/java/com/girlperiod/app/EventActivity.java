@@ -17,6 +17,7 @@ import com.girlperiod.app.data.Event;
 import com.girlperiod.app.data.User;
 import com.girlperiod.app.ui.GhibliDatePickerDialog;
 import com.girlperiod.app.ui.GhibliTheme;
+import com.girlperiod.app.widget.CalendarWidgetProvider;
 
 import java.util.Calendar;
 
@@ -195,6 +196,7 @@ public class EventActivity extends AppCompatActivity {
             int rows = dbHelper.updateEvent(event);
             if (rows > 0) {
                 Toast.makeText(this, "Event updated!", Toast.LENGTH_SHORT).show();
+                CalendarWidgetProvider.updateAllWidgets(this);
                 finish();
             } else {
                 Toast.makeText(this, "Failed to update event", Toast.LENGTH_SHORT).show();
@@ -203,6 +205,7 @@ public class EventActivity extends AppCompatActivity {
             long id = dbHelper.addEvent(event);
             if (id > 0) {
                 Toast.makeText(this, "Event saved!", Toast.LENGTH_SHORT).show();
+                CalendarWidgetProvider.updateAllWidgets(this);
                 finish();
             } else {
                 Toast.makeText(this, "Failed to save event", Toast.LENGTH_SHORT).show();
@@ -218,6 +221,7 @@ public class EventActivity extends AppCompatActivity {
                     int rows = dbHelper.deleteEvent(editEventId);
                     if (rows > 0) {
                         Toast.makeText(this, "Event deleted", Toast.LENGTH_SHORT).show();
+                        CalendarWidgetProvider.updateAllWidgets(this);
                         finish();
                     } else {
                         Toast.makeText(this, "Failed to delete event", Toast.LENGTH_SHORT).show();
