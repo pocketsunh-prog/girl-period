@@ -42,16 +42,9 @@
     <color name="divider">#FFE0E0E0</color>
     <color name="error_red">#FFFF5252</color>
     <color name="switch_track_color">#FFFFC1CC</color>
-    <!-- Home-screen calendar widget (dark) -->
-    <color name="widget_bg">#FF1B1B1B</color>
-    <color name="widget_stroke">#FF2E2E2E</color>
-    <color name="widget_weekday_pill">#FF262626</color>
-    <color name="widget_title">#FFF2F2F2</color>
-    <color name="widget_text">#FFE6E6E6</color>
-    <color name="widget_text_dim">#FFBDBDBD</color>
-    <color name="widget_lime">#FFC8E64B</color>
-    <color name="widget_accent_yellow">#FFF6E45A</color>
-    <color name="widget_today_text">#FF141414</color>
-    <color name="widget_blue">#FF2F6FE4</color>
-    <color name="widget_period_pink">#FFF2A6C0</color>
+    <!-- Home-screen calendar widget (light, matches the in-app calendar) -->
+    <color name="widget_text">#FF444444</color>
+    <color name="widget_muted">#FF9E9E9E</color>
+    <color name="widget_pink">#FFD46A8E</color>
+    <color name="widget_orange">#FFFF9800</color>
 </resources>

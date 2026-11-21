@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.girlperiod.app.widget.CalendarWidgetProvider;
+
 /**
  * BroadcastReceiver that triggers the daily period-check.
  * <p>
@@ -24,6 +26,9 @@ public class NotificationReceiver extends BroadcastReceiver {
             if (PeriodNotificationService.isNotificationsEnabled(context)) {
                 PeriodNotificationService.scheduleDaily(context);
             }
+            // Re-arm the widget's midnight refresh and re-render it for the new day.
+            CalendarWidgetProvider.scheduleDailyRefresh(context);
+            CalendarWidgetProvider.updateAllWidgets(context);
         }
 
         if (!PeriodNotificationService.isNotificationsEnabled(context)) {

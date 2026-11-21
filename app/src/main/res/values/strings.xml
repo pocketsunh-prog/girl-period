@@ -47,7 +47,5 @@
     <string name="weather">Weather</string>
     <string name="menu">Menu</string>
     <!-- Home-screen calendar widget -->
-    <string name="widget_calendar_title">Calendar·Calendar</string>
-    <string name="widget_add">新增</string>
-    <string name="widget_calendar_description">Month calendar with today, period days and events</string>
+    <string name="widget_calendar_description">Month calendar with lunar dates, period days, events and today</string>
 </resources>

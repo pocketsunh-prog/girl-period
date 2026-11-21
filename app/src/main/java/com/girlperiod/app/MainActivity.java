@@ -24,6 +24,7 @@ import com.girlperiod.app.data.PeriodRecord;
 import com.girlperiod.app.data.User;
 import com.girlperiod.app.ui.GhibliTheme;
 import com.girlperiod.app.widget.CalendarWidgetProvider;
+import com.girlperiod.app.widget.WidgetWeatherCache;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -289,6 +290,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupCalendar() {
+        // Hand the latest weather to the home-screen widget and refresh it.
+        if (weatherDataMap != null && !weatherDataMap.isEmpty()) {
+            WidgetWeatherCache.save(this, weatherDataMap);
+            CalendarWidgetProvider.updateAllWidgets(this);
+        }
+
         SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
         tvMonthYear.setText(monthFormat.format(currentMonth.getTime()));
 

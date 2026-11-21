@@ -26,7 +26,7 @@ public class WidgetPreviewActivity extends AppCompatActivity {
         getWindow().getDecorView().setBackgroundColor(Color.rgb(0x0D, 0x0D, 0x0D));
 
         FrameLayout container = findViewById(R.id.widgetPreviewContainer);
-        RemoteViews remoteViews = CalendarWidgetProvider.buildRemoteViews(this);
+        RemoteViews remoteViews = CalendarWidgetProvider.buildRemoteViews(this, 0);
         View widgetView = remoteViews.apply(this, container);
         container.addView(widgetView,
                 new FrameLayout.LayoutParams(

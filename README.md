@@ -18,7 +18,7 @@ Everything is stored in a local SQLite database on your phone. No account server
 | | |
 |---|---|
 | **Latest version** | v1.0 (`versionCode 1`) |
-| **File** | [`girl-period-v1.0.apk`](https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk) · 5.4 MB |
+| **File** | [`girl-period-v1.0.apk`](https://github.com/pocketsunh-prog/girl-period/raw/main/download/girl-period-v1.0.apk) · 5.5 MB |
 | **Requirements** | Android 7.0 (API 24) or newer · ~15 MB free space |
 | **Signature** | Signed with the project release key (always install updates over the old app) |
 
@@ -61,8 +61,8 @@ Everything is stored in a local SQLite database on your phone. No account server
 
 | Reminder popup | Home-screen widget |
 |:---:|:---:|
-| <img src="docs/screenshots/event-popup.png" width="260" alt="Today's events popup"> | <img src="docs/screenshots/widget.png" width="260" alt="Dark home-screen calendar widget with today circled, lime weekends, event and period dots"> |
-| Events and the 2-day period notice appear when you open the app | Compact month calendar with today, event and period dots |
+| <img src="docs/screenshots/event-popup.png" width="260" alt="Today's events popup"> | <img src="docs/screenshots/widget.png" width="260" alt="Home-screen calendar widget with lunar dates, weather, period highlights and today's long-cat pointer"> |
+| Events and the 2-day period notice appear when you open the app | Calendar-style widget with lunar dates, weather, period days and today's pointer |
 
 ---
 
@@ -83,13 +83,15 @@ Everything is stored in a local SQLite database on your phone. No account server
 - Hand-drawn cube girl mascot and long-cat "today" icon
 
 ### Home-screen widget
-- **Dark month calendar widget** (4×5 cells) that sits on your launcher next to your other widgets
-- Weekends in lime, **today circled in yellow**, exactly like the app's pixel-inspired look
-- **Dots on the days that matter**: lime dot = an event, pink dot = a recorded period day
-- **新增** button opens *Add Period* straight from the home screen; tapping the month or any day
-  opens the app
-- Refresh automatically at midnight (date change) and immediately after you add, edit or delete a
-  period or event
+- **Light month calendar widget** that matches the app's calendar look: white day cards, pink
+  accents, the lunar date and the day's weather under every number
+- **Period days are outlined** — pink for the first day, light pink for the days between, purple
+  for the last day — plus an orange dot for events and a star for festivals
+- **Today gets a green card and the long-cat pointer**, recomputed on every refresh so the pointer
+  moves by itself at midnight (daily alarm + system date-change broadcast, re-armed after reboot)
+- **‹ › arrows browse months**; tap the month title to jump back to today; tap any day to add a
+  period for that date
+- Weather icons/temperatures come from the app's last HKO update, so the widget works offline
 
 ### Live weather (Hong Kong Observatory)
 - Real-time **temperature, UV index, humidity, rainfall and wind** from the
@@ -170,10 +172,11 @@ Keep the **Notifications** switch on. Two days before your predicted period you 
 reminder, then again the day before and on the day. Event reminders follow the lead time you chose.
 
 ### 10. Add the home-screen widget
-Long-press an empty spot on your home screen → **Widgets** → **Girl Period** → drag
-**Calendar·Calendar** onto the launcher. The widget follows your real data: it shows the current
-month, circles today, puts a lime dot on days with events and a pink dot on period days. Tap
-**新增** to add a period without opening the app first.
+Long-press an empty spot on your home screen → **Widgets** → **Girl Period** → drag the calendar
+widget onto the launcher. It follows your real data: the current month with lunar dates and
+weather, pink/purple outlines on period days, an orange dot on event days, a star on festivals,
+and a green card with the long-cat pointer on today. Use **‹ ›** to browse months, tap the month
+title to return to today, and tap any day to add a period for that date.
 
 ---
 
